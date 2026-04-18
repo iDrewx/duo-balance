@@ -31,7 +31,7 @@ export default function Home() {
     }
   }, [authUser, authLoading, router])
 
-// Cargar gastos al inicio
+  // Cargar gastos al inicio
   useEffect(() => {
     setIsClient(true)
     const loadData = async () => {
@@ -226,26 +226,29 @@ export default function Home() {
       >
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {/* User Icon */}
+            {/* User Avatar */}
             <div 
-              className="w-10 h-10 rounded-full flex items-center justify-center"
+              className="w-10 h-10 rounded-full flex items-center justify-center text-xl"
               style={{ 
                 background: user === 'el' 
-                  ? 'linear-gradient(135deg, #006c4a 0%, #82f5c1 100%)' 
-                  : 'linear-gradient(135deg, #9d0050 0%, #ffd9e2 100%)'
+                  ? '#82f5c1' 
+                  : '#ffd9e2'
               }}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12Z" fill="white"/>
-                <path d="M12 14C8.67 14 2 15.67 2 19V21H22V19C22 15.67 15.33 14 12 14Z" fill="white"/>
-              </svg>
+              {user === 'el' 
+                ? (typeof window !== 'undefined' ? localStorage.getItem('duobalance-avatar-el') || '👨' : '👨')
+                : (typeof window !== 'undefined' ? localStorage.getItem('duobalance-avatar-ella') || '👩' : '👩')
+              }
             </div>
             <div>
               <h1 
                 className="text-lg font-bold"
                 style={{ color: '#1a1c1c', fontFamily: 'Manrope, sans-serif' }}
               >
-                {user === 'el' ? 'André' : 'Diana'}
+                {user === 'el' 
+                  ? (typeof window !== 'undefined' ? localStorage.getItem('duobalance-nombre-el') || 'André' : 'André')
+                  : (typeof window !== 'undefined' ? localStorage.getItem('duobalance-nombre-ella') || 'Diana' : 'Diana')
+                }
               </h1>
               <p className="text-xs" style={{ color: '#4a4455', fontFamily: 'Inter, sans-serif' }}>
                 DuoBalance
@@ -253,6 +256,17 @@ export default function Home() {
             </div>
           </div>
           <div className="flex gap-2">
+            <button
+              onClick={() => router.push('/settings')}
+              className="px-4 py-2 text-sm rounded-full transition-colors"
+              style={{ 
+                color: '#4a4455', 
+                background: '#f3f3f3',
+                fontFamily: 'Inter, sans-serif'
+              }}
+            >
+              Ajustes
+            </button>
             <button
               onClick={handleCambiarUsuario}
               className="px-4 py-2 text-sm rounded-full transition-colors"

@@ -2,6 +2,12 @@ export type UserRole = 'el' | 'ella'
 
 export type GastoTipo = 'propio' | 'compartido'
 
+export interface UserProfile {
+  role: UserRole
+  nombre: string
+  avatar?: string
+}
+
 export interface User {
   id: string
   email: string

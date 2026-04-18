@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Gasto, Resumen as ResumenType } from '@/types'
 
@@ -52,6 +53,15 @@ function calculateResumen(gastos: Gasto[]): ResumenType {
 
 export default function Resumen({ gastos, currentUser }: ResumenProps) {
   const resumen = calculateResumen(gastos)
+  const [nombreEl, setNombreEl] = useState('André')
+  const [nombreElla, setNombreElla] = useState('Diana')
+
+  useEffect(() => {
+    const storedNombreEl = localStorage.getItem('duobalance-nombre-el')
+    const storedNombreElla = localStorage.getItem('duobalance-nombre-ella')
+    if (storedNombreEl) setNombreEl(storedNombreEl)
+    if (storedNombreElla) setNombreElla(storedNombreElla)
+  }, [])
 
   return (
     <div 
@@ -124,17 +134,14 @@ export default function Resumen({ gastos, currentUser }: ResumenProps) {
         >
           <div className="flex items-center gap-4">
             <div 
-              className="w-12 h-12 rounded-xl flex items-center justify-center"
+              className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
               style={{ background: '#82f5c1' }}
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12Z" fill="#006c4a"/>
-                <path d="M12 14C8.67 14 2 15.67 2 19V21H22V19C22 15.67 15.33 14 12 14Z" fill="#006c4a"/>
-              </svg>
+              {localStorage.getItem('duobalance-avatar-el') || '👨'}
             </div>
             <div>
               <span className="font-semibold block" style={{ color: '#006c4a', fontFamily: 'Manrope, sans-serif' }}>
-                André
+                {nombreEl}
               </span>
               <span className="text-xs" style={{ color: '#4a4455', fontFamily: 'Inter, sans-serif' }}>
                 {formatCurrency(resumen.propiosEl)} propios + {formatCurrency(resumen.mitadCompartido)} mitad
@@ -163,17 +170,14 @@ export default function Resumen({ gastos, currentUser }: ResumenProps) {
         >
           <div className="flex items-center gap-4">
             <div 
-              className="w-12 h-12 rounded-xl flex items-center justify-center"
+              className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
               style={{ background: '#ffd9e2' }}
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12Z" fill="#9d0050"/>
-                <path d="M12 14C8.67 14 2 15.67 2 19V21H22V19C22 15.67 15.33 14 12 14Z" fill="#9d0050"/>
-              </svg>
+              {localStorage.getItem('duobalance-avatar-ella') || '👩'}
             </div>
             <div>
               <span className="font-semibold block" style={{ color: '#9d0050', fontFamily: 'Manrope, sans-serif' }}>
-                Diana
+                {nombreElla}
               </span>
               <span className="text-xs" style={{ color: '#4a4455', fontFamily: 'Inter, sans-serif' }}>
                 {formatCurrency(resumen.propiosElla)} propios + {formatCurrency(resumen.mitadCompartido)} mitad

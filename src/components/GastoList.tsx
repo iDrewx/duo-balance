@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Gasto } from '@/types'
 
@@ -24,6 +25,15 @@ function formatDate(dateStr: string): string {
 }
 
 export default function GastoList({ gastos }: GastoListProps) {
+  const [avatarEl, setAvatarEl] = useState('👨')
+  const [avatarElla, setAvatarElla] = useState('👩')
+
+  useEffect(() => {
+    const storedAvatarEl = localStorage.getItem('duobalance-avatar-el')
+    const storedAvatarElla = localStorage.getItem('duobalance-avatar-ella')
+    if (storedAvatarEl) setAvatarEl(storedAvatarEl)
+    if (storedAvatarElla) setAvatarElla(storedAvatarElla)
+  }, [])
   if (gastos.length === 0) {
     return (
       <div 
@@ -88,23 +98,14 @@ export default function GastoList({ gastos }: GastoListProps) {
               }}
             >
             <div className="flex items-center gap-4">
-              {/* Icono de usuario */}
+              {/* Avatar del usuario */}
               <div 
-                className="w-10 h-10 rounded-full flex items-center justify-center"
+                className="w-10 h-10 rounded-full flex items-center justify-center text-xl"
                 style={{ 
                   background: gasto.quien === 'el' ? '#82f5c1' : '#ffd9e2'
                 }}
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <path 
-                    d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12Z" 
-                    fill={gasto.quien === 'el' ? '#006c4a' : '#9d0050'}
-                  />
-                  <path 
-                    d="M12 14C8.67 14 2 15.67 2 19V21H22V19C22 15.67 15.33 14 12 14Z" 
-                    fill={gasto.quien === 'el' ? '#006c4a' : '#9d0050'}
-                  />
-                </svg>
+                {gasto.quien === 'el' ? avatarEl : avatarElla}
               </div>
               <div>
                 <p className="font-medium" style={{ color: '#1a1c1c', fontFamily: 'Inter, sans-serif' }}>
