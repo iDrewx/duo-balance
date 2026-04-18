@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Design System: DuoBalance */
+  --surface: #f9f9f9;
+  --surface-container-low: #f3f3f3;
+  --surface-container-lowest: #ffffff;
+  
+  --primary: #630ed4;
+  --primary-container: #7c3aed;
+  
+  --secondary: #006c4a;
+  --secondary-container: #82f5c1;
+  
+  --tertiary: #9d0050;
+  --tertiary-container: #c70f68;
+  
+  --on-surface: #1a1c1c;
+  --on-surface-variant: #4a4455;
+  --on-primary: #ffffff;
+  --on-secondary: #ffffff;
+  --on-tertiary: #ffffff;
+  
+  --outline: #7b7487;
+  --outline-variant: #ccc3d8;
+}
+
+body {
+  color: var(--on-surface);
+  background: var(--surface);
+  font-family: 'Inter', sans-serif;
+}
+
+/* Custom shadows - Ambient, not harsh */
+.shadow-ambient {
+  box-shadow: 0 12px 40px rgba(26, 28, 28, 0.06);
+}
+
+.shadow-card {
+  box-shadow: 0 4px 12px rgba(26, 28, 28, 0.04);
+}
+
+/* Gradient for shared/primary CTA */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
+}
+
+/* Glass effect */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+}
