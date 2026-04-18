@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Gasto } from '@/types'
+import { useTheme } from '@/context/ThemeContext'
+import { useUserSettings } from '@/context/UserSettingsContext'
 
 interface GastoListProps {
   gastos: Gasto[]
@@ -25,19 +27,15 @@ function formatDate(dateStr: string): string {
 }
 
 export default function GastoList({ gastos }: GastoListProps) {
-  const [avatarEl, setAvatarEl] = useState('👨')
-  const [avatarElla, setAvatarElla] = useState('👩')
+  const { isDark } = useTheme()
+  const { settings } = useUserSettings()
 
-  useEffect(() => {
-    const storedAvatarEl = localStorage.getItem('duobalance-avatar-el')
-    const storedAvatarElla = localStorage.getItem('duobalance-avatar-ella')
-    if (storedAvatarEl) setAvatarEl(storedAvatarEl)
-    if (storedAvatarElla) setAvatarElla(storedAvatarElla)
-  }, [])
+  const avatarEl = settings?.avatar_el || '👨'
+  const avatarElla = settings?.avatar_ella || '👩'
   if (gastos.length === 0) {
     return (
       <div 
-        className="bg-white p-8 text-center"
+        className="bg-[var(--surface-container-lowest)] p-8 text-center"
         style={{ 
           borderRadius: '24px', 
           boxShadow: '0 12px 40px rgba(26, 28, 28, 0.06)'
@@ -51,9 +49,9 @@ export default function GastoList({ gastos }: GastoListProps) {
           className="mx-auto mb-4"
           style={{ opacity: 0.3 }}
         >
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#4a4455"/>
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="var(--on-surface-variant)"/>
         </svg>
-        <p style={{ color: '#4a4455', fontFamily: 'Inter, sans-serif' }}>No hay gastos registrados</p>
+        <p style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }}>No hay gastos registrados</p>
       </div>
     )
   }
@@ -65,7 +63,7 @@ export default function GastoList({ gastos }: GastoListProps) {
 
   return (
     <div 
-      className="bg-white overflow-hidden"
+      className="bg-[var(--surface-container-lowest)] overflow-hidden"
       style={{ 
         borderRadius: '24px', 
         boxShadow: '0 12px 40px rgba(26, 28, 28, 0.06)'
@@ -73,11 +71,11 @@ export default function GastoList({ gastos }: GastoListProps) {
     >
       <div 
         className="px-6 py-5"
-        style={{ background: '#f3f3f3' }}
+        style={{ background: 'var(--surface-container-low)' }}
       >
         <h2 
           className="text-lg font-semibold"
-          style={{ color: '#1a1c1c', fontFamily: 'Manrope, sans-serif' }}
+          style={{ color: 'var(--on-surface)', fontFamily: 'Manrope, sans-serif' }}
         >
           Gastos recientes
         </h2>
@@ -94,7 +92,7 @@ export default function GastoList({ gastos }: GastoListProps) {
               transition={{ duration: 0.3, ease: "easeOut" }}
               className="px-6 py-4 flex items-center justify-between"
               style={{ 
-                borderBottom: '1px solid #f3f3f3'
+                borderBottom: '1px solid var(--surface-container-low)'
               }}
             >
             <div className="flex items-center gap-4">
@@ -102,24 +100,24 @@ export default function GastoList({ gastos }: GastoListProps) {
               <div 
                 className="w-10 h-10 rounded-full flex items-center justify-center text-xl"
                 style={{ 
-                  background: gasto.quien === 'el' ? '#82f5c1' : '#ffd9e2'
+                  background: gasto.quien === 'el' ? 'var(--secondary-container)' : 'var(--tertiary-container)'
                 }}
               >
                 {gasto.quien === 'el' ? avatarEl : avatarElla}
               </div>
               <div>
-                <p className="font-medium" style={{ color: '#1a1c1c', fontFamily: 'Inter, sans-serif' }}>
+                <p className="font-medium" style={{ color: 'var(--on-surface)', fontFamily: 'Inter, sans-serif' }}>
                   {gasto.descripcion}
                 </p>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs" style={{ color: '#4a4455', fontFamily: 'Inter, sans-serif' }}>
+                  <span className="text-xs" style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }}>
                     {formatDate(gasto.fecha)}
                   </span>
                   <span 
                     className="px-2 py-0.5 rounded-full text-xs font-medium"
                     style={{ 
-                      background: gasto.tipo === 'compartido' ? '#eaddff' : '#f3f3f3',
-                      color: gasto.tipo === 'compartido' ? '#630ed4' : '#4a4455',
+                      background: gasto.tipo === 'compartido' ? isDark ? 'rgba(179, 136, 255, 0.2)' : '#eaddff' : 'var(--surface-container-low)',
+                      color: gasto.tipo === 'compartido' ? 'var(--primary)' : 'var(--on-surface-variant)',
                       fontFamily: 'Inter, sans-serif'
                     }}
                   >
@@ -131,7 +129,7 @@ export default function GastoList({ gastos }: GastoListProps) {
             
             <span 
               className="font-bold text-lg"
-              style={{ color: '#1a1c1c', fontFamily: 'Manrope, sans-serif' }}
+              style={{ color: 'var(--on-surface)', fontFamily: 'Manrope, sans-serif' }}
             >
               {formatCurrency(gasto.monto)}
             </span>

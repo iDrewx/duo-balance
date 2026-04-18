@@ -1,53 +1,151 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { UserRole } from '@/types'
+import { useUserSettings } from '@/context/UserSettingsContext'
 
-// Storage keys
+// Storage key para último perfil usado
 const PROFILE_KEY = 'duobalance-last-profile'
-const NOMBRE_KEY = 'duobalance-nombre'
-const AVATAR_KEY = 'duobalance-avatar'
 
 interface UserSelectorProps {
   onSelect: (role: UserRole) => void
 }
 
 export default function UserSelector({ onSelect }: UserSelectorProps) {
-  const [nombreEl, setNombreEl] = useState('André')
-  const [nombreElla, setNombreElla] = useState('Diana')
-  const [avatarEl, setAvatarEl] = useState('👨')
-  const [avatarElla, setAvatarElla] = useState('👩')
+  const { settings, isLoading } = useUserSettings()
 
-  useEffect(() => {
-    // Cargar nombres y avatares desde localStorage
-    const storedNombreEl = localStorage.getItem(`${NOMBRE_KEY}-el`)
-    const storedNombreElla = localStorage.getItem(`${NOMBRE_KEY}-ella`)
-    const storedAvatarEl = localStorage.getItem(`${AVATAR_KEY}-el`)
-    const storedAvatarElla = localStorage.getItem(`${AVATAR_KEY}-ella`)
+  // Guardar último perfil usado
+  const handleSelect = (role: UserRole) => {
+    localStorage.setItem(PROFILE_KEY, role)
+    onSelect(role)
+  }
 
-    if (storedNombreEl) setNombreEl(storedNombreEl)
-    if (storedNombreElla) setNombreElla(storedNombreElla)
-    if (storedAvatarEl) setAvatarEl(storedAvatarEl)
-    if (storedAvatarElla) setAvatarElla(storedAvatarElla)
+  // Si está cargando, mostrar pantalla de carga
+  if (isLoading || !settings) {
+    return (
+      <div 
+        className="min-h-screen flex flex-col items-center justify-center p-6 bg-[var(--surface)]"
+      >
+        <div className="text-center">
+          <div 
+            className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"
+            style={{ borderTopColor: 'transparent' }}
+          ></div>
+          <p style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }}>
+            Cargando...
+          </p>
+        </div>
+      </div>
+    )
+  }
 
-    // Guardar valores por defecto si no existen
-    if (!storedNombreEl) localStorage.setItem(`${NOMBRE_KEY}-el`, 'André')
-    if (!storedNombreElla) localStorage.setItem(`${NOMBRE_KEY}-ella`, 'Diana')
-    if (!storedAvatarEl) localStorage.setItem(`${AVATAR_KEY}-el`, '👨')
-    if (!storedAvatarElla) localStorage.setItem(`${AVATAR_KEY}-ella`, '👩')
-  }, [])
+  const { nombre_el, nombre_ella, avatar_el, avatar_ella, assigned_profile } = settings
 
+  // Si hay un perfil asignado, mostrar solo ese perfil
+  if (assigned_profile) {
+    const isEl = assigned_profile === 'el'
+    return (
+      <div 
+        className="min-h-screen flex flex-col items-center justify-center p-6 bg-[var(--surface)]"
+      >
+        {/* Logo / Header */}
+        <div className="text-center mb-10">
+          <h1 
+            className="text-4xl font-bold mb-3"
+            style={{ 
+              color: 'var(--on-surface)', 
+              fontFamily: 'Manrope, sans-serif',
+              letterSpacing: '-0.03em'
+            }}
+          >
+            DuoBalance
+          </h1>
+          <p 
+            className="text-base"
+            style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }}
+          >
+            Your shared sanctuary
+          </p>
+        </div>
+
+        {/* Main Card - Single Profile */}
+        <div 
+          className="max-w-md w-full bg-[var(--surface-container-lowest)] p-8"
+          style={{ 
+            borderRadius: '32px', 
+            boxShadow: '0 24px 80px rgba(26, 28, 28, 0.08)'
+          }}
+        >
+          <h2 
+            className="text-2xl font-semibold text-center mb-8"
+            style={{ color: 'var(--on-surface)', fontFamily: 'Manrope, sans-serif' }}
+          >
+            Hola, {isEl ? nombre_el : nombre_ella}
+          </h2>
+          
+          <button
+            onClick={() => handleSelect(assigned_profile)}
+            className="flex flex-col items-center gap-5 p-8 transition-all group w-full"
+            style={{ 
+              background: 'var(--surface-container-low)',
+              borderRadius: '24px'
+            }}
+          >
+            {/* Avatar */}
+            <div 
+              className="w-24 h-24 rounded-3xl flex items-center justify-center text-5xl"
+              style={{ 
+                background: isEl ? 'var(--secondary-container)' : 'var(--tertiary-container)'
+              }}
+            >
+              {isEl ? avatar_el : avatar_ella}
+            </div>
+            <div className="text-center">
+              <span 
+                className="block text-xl font-semibold"
+                style={{ color: isEl ? 'var(--secondary)' : 'var(--tertiary)', fontFamily: 'Manrope, sans-serif' }}
+              >
+                {isEl ? nombre_el : nombre_ella}
+              </span>
+              <span 
+                className="text-sm"
+                style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }}
+              >
+                Mi perfil
+              </span>
+            </div>
+            <span 
+              className="text-sm font-medium px-6 py-3 rounded-full w-full text-center transition-all"
+              style={{ 
+                background: isEl ? 'var(--secondary)' : 'var(--tertiary)',
+                color: '#ffffff',
+                fontFamily: 'Inter, sans-serif'
+              }}
+            >
+              Entrar
+            </span>
+          </button>
+        </div>
+
+        {/* Footer */}
+        <p className="mt-10 text-sm" style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }}>
+          © 2024 DuoBalance
+        </p>
+      </div>
+    )
+  }
+
+  // Sin perfil asignado - mostrar ambos perfiles
   return (
     <div 
-      className="min-h-screen flex flex-col items-center justify-center p-6"
-      style={{ background: '#f9f9f9' }}
+      className="min-h-screen flex flex-col items-center justify-center p-6 bg-[var(--surface)]"
     >
       {/* Logo / Header */}
       <div className="text-center mb-10">
         <h1 
           className="text-4xl font-bold mb-3"
           style={{ 
-            color: '#1a1c1c', 
+            color: 'var(--on-surface)', 
             fontFamily: 'Manrope, sans-serif',
             letterSpacing: '-0.03em'
           }}
@@ -56,7 +154,7 @@ export default function UserSelector({ onSelect }: UserSelectorProps) {
         </h1>
         <p 
           className="text-base"
-          style={{ color: '#4a4455', fontFamily: 'Inter, sans-serif' }}
+          style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }}
         >
           Your shared sanctuary
         </p>
@@ -64,7 +162,7 @@ export default function UserSelector({ onSelect }: UserSelectorProps) {
 
       {/* Main Card */}
       <div 
-        className="max-w-md w-full bg-white p-8"
+        className="max-w-md w-full bg-[var(--surface-container-lowest)] p-8"
         style={{ 
           borderRadius: '32px', 
           boxShadow: '0 24px 80px rgba(26, 28, 28, 0.08)'
@@ -72,7 +170,7 @@ export default function UserSelector({ onSelect }: UserSelectorProps) {
       >
         <h2 
           className="text-2xl font-semibold text-center mb-8"
-          style={{ color: '#1a1c1c', fontFamily: 'Manrope, sans-serif' }}
+          style={{ color: 'var(--on-surface)', fontFamily: 'Manrope, sans-serif' }}
         >
           Seleccionar perfil
         </h2>
@@ -80,10 +178,10 @@ export default function UserSelector({ onSelect }: UserSelectorProps) {
         <div className="grid grid-cols-2 gap-6">
           {/* El */}
           <button
-            onClick={() => onSelect('el')}
+            onClick={() => handleSelect('el')}
             className="flex flex-col items-center gap-5 p-8 transition-all group"
             style={{ 
-              background: '#f3f3f3',
+              background: 'var(--surface-container-low)',
               borderRadius: '24px'
             }}
           >
@@ -91,21 +189,21 @@ export default function UserSelector({ onSelect }: UserSelectorProps) {
             <div 
               className="w-24 h-24 rounded-3xl flex items-center justify-center text-5xl"
               style={{ 
-                background: '#82f5c1'
+                background: 'var(--secondary-container)'
               }}
             >
-              {avatarEl}
+              {avatar_el}
             </div>
             <div className="text-center">
               <span 
                 className="block text-xl font-semibold"
-                style={{ color: '#006c4a', fontFamily: 'Manrope, sans-serif' }}
+                style={{ color: 'var(--secondary)', fontFamily: 'Manrope, sans-serif' }}
               >
-                {nombreEl}
+                {nombre_el}
               </span>
               <span 
                 className="text-sm"
-                style={{ color: '#4a4455', fontFamily: 'Inter, sans-serif' }}
+                style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }}
               >
                 Mi perfil
               </span>
@@ -113,7 +211,7 @@ export default function UserSelector({ onSelect }: UserSelectorProps) {
             <span 
               className="text-sm font-medium px-6 py-3 rounded-full w-full text-center transition-all"
               style={{ 
-                background: '#006c4a',
+                background: 'var(--secondary)',
                 color: '#ffffff',
                 fontFamily: 'Inter, sans-serif'
               }}
@@ -124,10 +222,10 @@ export default function UserSelector({ onSelect }: UserSelectorProps) {
 
           {/* Ella */}
           <button
-            onClick={() => onSelect('ella')}
+            onClick={() => handleSelect('ella')}
             className="flex flex-col items-center gap-5 p-8 transition-all group"
             style={{ 
-              background: '#f3f3f3',
+              background: 'var(--surface-container-low)',
               borderRadius: '24px'
             }}
           >
@@ -135,21 +233,21 @@ export default function UserSelector({ onSelect }: UserSelectorProps) {
             <div 
               className="w-24 h-24 rounded-3xl flex items-center justify-center text-5xl"
               style={{ 
-                background: '#ffd9e2'
+                background: 'var(--tertiary-container)'
               }}
             >
-              {avatarElla}
+              {avatar_ella}
             </div>
             <div className="text-center">
               <span 
                 className="block text-xl font-semibold"
-                style={{ color: '#9d0050', fontFamily: 'Manrope, sans-serif' }}
+                style={{ color: 'var(--tertiary)', fontFamily: 'Manrope, sans-serif' }}
               >
-                {nombreElla}
+                {nombre_ella}
               </span>
               <span 
                 className="text-sm"
-                style={{ color: '#4a4455', fontFamily: 'Inter, sans-serif' }}
+                style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }}
               >
                 Mi perfil
               </span>
@@ -157,7 +255,7 @@ export default function UserSelector({ onSelect }: UserSelectorProps) {
             <span 
               className="text-sm font-medium px-6 py-3 rounded-full w-full text-center transition-all"
               style={{ 
-                background: '#9d0050',
+                background: 'var(--tertiary)',
                 color: '#ffffff',
                 fontFamily: 'Inter, sans-serif'
               }}
@@ -169,7 +267,7 @@ export default function UserSelector({ onSelect }: UserSelectorProps) {
       </div>
 
       {/* Footer */}
-      <p className="mt-10 text-sm" style={{ color: '#4a4455', fontFamily: 'Inter, sans-serif' }}>
+      <p className="mt-10 text-sm" style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }}>
         © 2024 DuoBalance
       </p>
     </div>

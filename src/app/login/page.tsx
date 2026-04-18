@@ -3,9 +3,11 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabase, debugSupabase } from '@/lib/supabase'
+import { useTheme } from '@/context/ThemeContext'
 
 export default function LoginPage() {
   const router = useRouter()
+  const { isDark } = useTheme()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -62,15 +64,14 @@ export default function LoginPage() {
 
   return (
     <div 
-      className="min-h-screen flex flex-col items-center justify-center p-6"
-      style={{ background: '#f9f9f9' }}
+      className="min-h-screen flex flex-col items-center justify-center p-6 bg-[var(--surface)]"
     >
       {/* Logo / Header */}
       <div className="text-center mb-10">
         <h1 
           className="text-4xl font-bold mb-3"
           style={{ 
-            color: '#1a1c1c', 
+            color: 'var(--on-surface)', 
             fontFamily: 'Manrope, sans-serif',
             letterSpacing: '-0.03em'
           }}
@@ -79,7 +80,7 @@ export default function LoginPage() {
         </h1>
         <p 
           className="text-base"
-          style={{ color: '#4a4455', fontFamily: 'Inter, sans-serif' }}
+          style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }}
         >
           Comparte gastos, comparte vida
         </p>
@@ -87,15 +88,16 @@ export default function LoginPage() {
 
       {/* Main Card */}
       <div 
-        className="max-w-md w-full bg-white p-8"
+        className="max-w-md w-full p-8"
         style={{ 
           borderRadius: '32px', 
-          boxShadow: '0 24px 80px rgba(26, 28, 28, 0.08)'
+          boxShadow: '0 24px 80px rgba(26, 28, 28, 0.08)',
+          background: 'var(--surface-container-lowest)'
         }}
       >
         <h2 
           className="text-2xl font-semibold text-center mb-8"
-          style={{ color: '#1a1c1c', fontFamily: 'Manrope, sans-serif' }}
+          style={{ color: 'var(--on-surface)', fontFamily: 'Manrope, sans-serif' }}
         >
           {isSignUp ? 'Crear cuenta' : 'Iniciar sesión'}
         </h2>
@@ -104,8 +106,8 @@ export default function LoginPage() {
           <div 
             className="mb-6 p-4 text-sm"
             style={{ 
-              background: error.includes('creada') ? '#dcfce7' : '#ffdad6',
-              color: error.includes('creada') ? '#166534' : '#ba1a1a',
+              background: error.includes('creada') ? isDark ? '#052e16' : '#dcfce7' : 'var(--error-container)',
+              color: error.includes('creada') ? (isDark ? '#6ee7b7' : '#166534') : 'var(--error)',
               borderRadius: '16px',
               fontFamily: 'Inter, sans-serif'
             }}
@@ -118,7 +120,7 @@ export default function LoginPage() {
           <div>
             <label 
               className="block text-sm font-medium mb-2"
-              style={{ color: '#1a1c1c', fontFamily: 'Inter, sans-serif' }}
+              style={{ color: 'var(--on-surface)', fontFamily: 'Inter, sans-serif' }}
             >
               Email
             </label>
@@ -129,11 +131,12 @@ export default function LoginPage() {
               required
               className="w-full px-5 py-4 text-base"
               style={{ 
-                background: '#f3f3f3',
+                background: 'var(--surface-container-low)',
                 borderRadius: '16px',
                 border: '2px solid transparent',
                 fontFamily: 'Inter, sans-serif',
-                outline: 'none'
+                outline: 'none',
+                color: 'var(--on-surface)'
               }}
               placeholder="tu@email.com"
             />
@@ -142,7 +145,7 @@ export default function LoginPage() {
           <div>
             <label 
               className="block text-sm font-medium mb-2"
-              style={{ color: '#1a1c1c', fontFamily: 'Inter, sans-serif' }}
+              style={{ color: 'var(--on-surface)', fontFamily: 'Inter, sans-serif' }}
             >
               Contraseña
             </label>
@@ -154,11 +157,12 @@ export default function LoginPage() {
               minLength={6}
               className="w-full px-5 py-4 text-base"
               style={{ 
-                background: '#f3f3f3',
+                background: 'var(--surface-container-low)',
                 borderRadius: '16px',
                 border: '2px solid transparent',
                 fontFamily: 'Inter, sans-serif',
-                outline: 'none'
+                outline: 'none',
+                color: 'var(--on-surface)'
               }}
               placeholder="••••••••"
             />
@@ -169,8 +173,8 @@ export default function LoginPage() {
             disabled={isLoading}
             className="w-full py-4 text-base font-semibold rounded-full transition-all"
             style={{ 
-              background: isLoading ? '#ccc3d8' : 'linear-gradient(135deg, #630ed4 0%, #7c3aed 100%)',
-              color: '#ffffff',
+              background: isLoading ? 'var(--outline)' : 'linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%)',
+              color: 'var(--on-primary)',
               fontFamily: 'Inter, sans-serif'
             }}
           >
@@ -180,9 +184,9 @@ export default function LoginPage() {
 
         {/* Divider */}
         <div className="my-6 flex items-center">
-          <div className="flex-1 h-px" style={{ background: '#e5e5e5' }}></div>
-          <span className="px-4 text-sm" style={{ color: '#4a4455', fontFamily: 'Inter, sans-serif' }}>o</span>
-          <div className="flex-1 h-px" style={{ background: '#e5e5e5' }}></div>
+          <div className="flex-1 h-px" style={{ background: 'var(--outline-variant)' }}></div>
+          <span className="px-4 text-sm" style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }}>o</span>
+          <div className="flex-1 h-px" style={{ background: 'var(--outline-variant)' }}></div>
         </div>
 
         {/* Google Login */}
@@ -212,10 +216,10 @@ export default function LoginPage() {
           disabled={isLoading}
           className="w-full py-4 text-base font-semibold rounded-full transition-all flex items-center justify-center gap-3"
           style={{ 
-            background: '#ffffff',
-            color: '#1a1c1c',
+            background: 'var(--surface-container-lowest)',
+            color: 'var(--on-surface)',
             fontFamily: 'Inter, sans-serif',
-            border: '2px solid #e5e5e5'
+            border: '2px solid var(--outline-variant)'
           }}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -236,7 +240,7 @@ export default function LoginPage() {
             }}
             className="text-sm font-medium"
             style={{ 
-              color: '#630ed4',
+              color: 'var(--primary)',
               fontFamily: 'Inter, sans-serif'
             }}
           >
@@ -247,13 +251,14 @@ export default function LoginPage() {
 
       {/* Debug info - only show when there's an error */}
       {error.includes('No hay conexión') && (
-        <div className="mt-6 p-4 bg-yellow-50 rounded-lg text-xs font-mono">
+        <div className="mt-6 p-4 rounded-lg text-xs font-mono" style={{ background: isDark ? '#1e1e1e' : '#fffbeb', color: isDark ? '#fcd34d' : '#92400e' }}>
           <p className="font-bold mb-2">Debug:</p>
           <p>URL: {showDebug ? debugSupabase().url : '(click para ver)'}</p>
           <p>Key: {showDebug ? debugSupabase().keyPreview : '(click para ver)'}</p>
           <button 
             onClick={() => setShowDebug(!showDebug)}
-            className="mt-2 text-blue-600 underline"
+            className="mt-2 underline"
+            style={{ color: isDark ? '#60a5fa' : '#2563eb' }}
           >
             {showDebug ? 'Ocultar' : 'Mostrar'}
           </button>
@@ -261,7 +266,7 @@ export default function LoginPage() {
       )}
 
       {/* Footer */}
-      <p className="mt-10 text-sm" style={{ color: '#4a4455', fontFamily: 'Inter, sans-serif' }}>
+      <p className="mt-10 text-sm" style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }}>
         © 2026 DuoBalance
       </p>
     </div>

@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from 'react'
 import { Gasto, Resumen as ResumenType } from '@/types'
+import { useTheme } from '@/context/ThemeContext'
+import { useUserSettings } from '@/context/UserSettingsContext'
 
 interface HistorialProps {
   gastos: Gasto[]
@@ -86,7 +88,12 @@ function calculateResumen(gastos: Gasto[]): ResumenType {
 }
 
 export default function Historial({ gastos }: HistorialProps) {
+  const { isDark } = useTheme()
+  const { settings } = useUserSettings()
   const [corteExpandido, setCorteExpandido] = useState<string | null>(null)
+  
+  const avatarEl = settings?.avatar_el || '👨'
+  const avatarElla = settings?.avatar_ella || '👩'
   
   const cortesAgrupados = useMemo(() => {
     const grupos: Record<string, Gasto[]> = {}
@@ -114,38 +121,39 @@ export default function Historial({ gastos }: HistorialProps) {
 
   if (cortesAgrupados.length === 0) {
     return (
-      <div className="bg-white rounded-xl p-8 shadow-sm border border-zinc-100 text-center">
-        <p className="text-zinc-400">No hay gastos en el historial</p>
+      <div className="bg-[var(--surface-container-lowest)] rounded-xl p-8 shadow-sm text-center">
+        <p className="text-[var(--on-surface-variant)]">No hay gastos en el historial</p>
       </div>
     )
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-zinc-100 overflow-hidden">
-      <div className="px-6 py-4 border-b border-zinc-100">
-        <h2 className="text-lg font-semibold text-zinc-800">Historial por corte</h2>
-        <p className="text-sm text-zinc-500">Corte de tarjeta: dia {DIA_CORTE} de cada mes</p>
+    <div className="bg-[var(--surface-container-lowest)] rounded-xl shadow-sm overflow-hidden">
+      <div className="px-6 py-4 border-b" style={{ borderColor: 'var(--outline-variant)' }}>
+        <h2 className="text-lg font-semibold" style={{ color: 'var(--on-surface)' }}>Historial por corte</h2>
+        <p className="text-sm" style={{ color: 'var(--on-surface-variant)' }}>Corte de tarjeta: dia {DIA_CORTE} de cada mes</p>
       </div>
       
-      <div className="divide-y divide-zinc-100">
+      <div>
         {cortesAgrupados.map((corte) => (
           <div key={corte.id}>
             {/* Header del corte - clickeable */}
             <button
               onClick={() => setCorteExpandido(corteExpandido === corte.id ? null : corte.id)}
-              className="w-full px-6 py-4 flex items-center justify-between hover:bg-zinc-50 transition-colors"
+              className="w-full px-6 py-4 flex items-center justify-between transition-colors"
+              style={{ background: 'var(--surface-container-lowest)' }}
             >
               <div className="flex items-center gap-3">
                 <span className="text-2xl">
                   {corteExpandido === corte.id ? '▼' : '▶'}
                 </span>
-                <span className="font-semibold text-zinc-800">{corte.label}</span>
+                <span className="font-semibold" style={{ color: 'var(--on-surface)' }}>{corte.label}</span>
               </div>
               <div className="flex items-center gap-4">
-                <span className="text-sm text-zinc-500">
+                <span className="text-sm" style={{ color: 'var(--on-surface-variant)' }}>
                   {corte.gastos.length} gasto{corte.gastos.length !== 1 ? 's' : ''}
                 </span>
-                <span className="font-bold text-zinc-800">
+                <span className="font-bold" style={{ color: 'var(--on-surface)' }}>
                   {formatCurrency(corte.resumen.debeEl + corte.resumen.debeElla)}
                 </span>
               </div>
@@ -153,18 +161,18 @@ export default function Historial({ gastos }: HistorialProps) {
             
             {/* Detalle expandido */}
             {corteExpandido === corte.id && (
-              <div className="px-6 pb-4 bg-zinc-50">
+              <div className="px-6 pb-4" style={{ background: 'var(--surface-container-low)' }}>
                 {/* Resumen del corte */}
                 <div className="grid grid-cols-2 gap-3 mb-4">
-                  <div className="bg-white p-3 rounded-lg">
-                    <p className="text-xs text-zinc-500 mb-1">Compartido</p>
-                    <p className="font-semibold text-purple-600">
+                  <div className="bg-[var(--surface-container-lowest)] p-3 rounded-lg">
+                    <p className="text-xs mb-1" style={{ color: 'var(--on-surface-variant)' }}>Compartido</p>
+                    <p className="font-semibold" style={{ color: 'var(--primary)' }}>
                       {formatCurrency(corte.resumen.totalCompartido)}
                     </p>
                   </div>
-                  <div className="bg-white p-3 rounded-lg">
-                    <p className="text-xs text-zinc-500 mb-1">Cada uno paga</p>
-                    <p className="font-semibold text-zinc-700">
+                  <div className="bg-[var(--surface-container-lowest)] p-3 rounded-lg">
+                    <p className="text-xs mb-1" style={{ color: 'var(--on-surface-variant)' }}>Cada uno paga</p>
+                    <p className="font-semibold" style={{ color: 'var(--on-surface)' }}>
                       {formatCurrency(corte.resumen.mitadCompartido)}
                     </p>
                   </div>
@@ -175,26 +183,29 @@ export default function Historial({ gastos }: HistorialProps) {
                   {corte.gastos.map((gasto) => (
                     <div
                       key={gasto.id}
-                      className="flex items-center justify-between py-2 px-3 bg-white rounded-lg"
+                      className="flex items-center justify-between py-2 px-3 bg-[var(--surface-container-lowest)] rounded-lg"
                     >
                       <div className="flex items-center gap-2">
                         <span className="text-lg">
-                          {gasto.quien === 'el' ? '👨' : '👩'}
+                          {gasto.quien === 'el' ? avatarEl : avatarElla}
                         </span>
                         <div>
-                          <p className="text-sm font-medium text-zinc-800">
+                          <p className="text-sm font-medium" style={{ color: 'var(--on-surface)' }}>
                             {gasto.descripcion}
                           </p>
                           <p className={`text-xs px-2 py-0.5 rounded ${
                             gasto.tipo === 'compartido' 
-                              ? 'bg-purple-100 text-purple-700' 
-                              : 'bg-zinc-100 text-zinc-600'
-                          }`}>
+                              ? isDark ? 'rgba(179, 136, 255, 0.2)' : 'rgba(99, 14, 212, 0.1)'
+                              : 'var(--surface-container-low)'
+                          }`}
+                          style={{ 
+                            color: gasto.tipo === 'compartido' ? 'var(--primary)' : 'var(--on-surface-variant)'
+                          }}>
                             {gasto.tipo === 'compartido' ? 'Compartido' : 'Propio'}
                           </p>
                         </div>
                       </div>
-                      <span className="font-semibold text-zinc-800">
+                      <span className="font-semibold" style={{ color: 'var(--on-surface)' }}>
                         {formatCurrency(gasto.monto)}
                       </span>
                     </div>

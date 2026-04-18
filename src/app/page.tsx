@@ -8,6 +8,8 @@ import GastoList from '@/components/GastoList'
 import Resumen from '@/components/Resumen'
 import Historial from '@/components/Historial'
 import { useAuth } from '@/context/AuthContext'
+import { useTheme } from '@/context/ThemeContext'
+import { useUserSettings } from '@/context/UserSettingsContext'
 import { Gasto, GastoTipo, UserRole } from '@/types'
 import { getSupabase } from '@/lib/supabase'
 
@@ -17,12 +19,23 @@ const STORAGE_KEY = 'gastos-compartidos-data'
 export default function Home() {
   const router = useRouter()
   const { user: authUser, isLoading: authLoading, signOut } = useAuth()
+  const { isDark } = useTheme()
+  const { settings, isLoading: settingsLoading } = useUserSettings()
+  
   const [user, setUser] = useState<UserRole | null>(null)
   const [gastos, setGastos] = useState<Gasto[]>([])
   const [isClient, setIsClient] = useState(false)
   const [vista, setVista] = useState<'resumen' | 'historial'>('resumen')
   const [isLoading, setIsLoading] = useState(true)
-  const [useLocalStorage, setUseLocalStorage] = useState(false)
+
+  // Cargar perfil asignado automáticamente al iniciar
+  useEffect(() => {
+    if (isClient && settings && !settingsLoading) {
+      if (settings.assigned_profile) {
+        setUser(settings.assigned_profile)
+      }
+    }
+  }, [isClient, settings, settingsLoading])
 
   // Verificar auth antes de mostrar la app
   useEffect(() => {
@@ -38,7 +51,6 @@ export default function Home() {
       const supabase = getSupabase()
       if (supabase) {
         try {
-          // Fetch without ordering first to see what columns exist
           const { data, error } = await supabase
             .from('gastos')
             .select('*')
@@ -73,60 +85,11 @@ export default function Home() {
       }
     }
     setIsLoading(false)
-    setUseLocalStorage(true)
   }
 
   const saveLocalGastos = (data: Gasto[]) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
   }
-
-  const fetchGastosSupabase = async (supabase: any) => {
-    setIsLoading(true)
-    try {
-      const { data, error } = await supabase
-        .from('gastos')
-        .select('*')
-      
-      if (error) {
-        console.error('Error fetching gastos:', error)
-        loadLocalGastos()
-      } else if (data) {
-        setGastos(data)
-      }
-    } catch (err) {
-      console.error('Error:', err)
-      loadLocalGastos()
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // Cargar gastos al inicio y configurar realtime
-  useEffect(() => {
-    if (!isClient) return
-
-    const supabase = getSupabase()
-    if (!supabase) return
-
-    // Nota: Realtime暂时 desactivado para evitar refetch visual
-    // Los gastos se actualizan optimísticamente al insertar
-    /*
-    const channel = supabase
-      .channel('gastos-changes')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'gastos'
-      }, () => {
-        fetchGastosSupabase(supabase)
-      })
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-    */
-  }, [isClient])
 
   const handleAgregarGasto = useCallback(async (monto: number, descripcion: string, tipo: GastoTipo) => {
     if (!user) return
@@ -173,7 +136,9 @@ export default function Home() {
   }, [user])
 
   const handleCambiarUsuario = () => {
-    setUser(null)
+    if (!settings?.assigned_profile) {
+      setUser(null)
+    }
   }
 
   const handleLimpiarDatos = async () => {
@@ -197,29 +162,69 @@ export default function Home() {
     return gastos.filter(g => new Date(g.fecha) >= hace30Dias)
   }, [gastos])
 
-  if (!user) {
-    return <UserSelector onSelect={setUser} />
+  // Obtener datos del perfil desde settings
+  const getProfileData = (userRole: UserRole) => {
+    if (!settings) {
+      return userRole === 'el' 
+        ? { nombre: 'André', avatar: '👨' }
+        : { nombre: 'Diana', avatar: '👩' }
+    }
+    return userRole === 'el' 
+      ? { nombre: settings.nombre_el, avatar: settings.avatar_el }
+      : { nombre: settings.nombre_ella, avatar: settings.avatar_ella }
   }
 
-  if (!isClient || isLoading) {
+  const assignedProfile = settings?.assigned_profile
+
+  // Si settings no cargan, mostrar loading
+  if (settingsLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#f9f9f9' }}>
+      <div className="min-h-screen flex items-center justify-center bg-[var(--surface)]">
         <div className="text-center">
           <div 
             className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"
             style={{ borderTopColor: 'transparent' }}
           ></div>
-          <p style={{ color: '#4a4455', fontFamily: 'Inter, sans-serif' }}>Cargando...</p>
+          <p className="text-[var(--on-surface-variant)] font-['Inter',sans-serif]">Cargando...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Solo si NO hay perfil asignado, mostrar el UserSelector para que elija
+  if (!user && !assignedProfile) {
+    return <UserSelector onSelect={setUser} />
+  }
+
+  // Si hay un perfil asignado, forzar ese perfil
+  if (!user && assignedProfile) {
+    setUser(assignedProfile)
+    return null
+  }
+
+  // TypeScript cast para asegurar que user no es null
+  const currentUser = user as UserRole
+  const profileData = getProfileData(currentUser)
+
+  if (!isClient || isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[var(--surface)]">
+        <div className="text-center">
+          <div 
+            className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"
+            style={{ borderTopColor: 'transparent' }}
+          ></div>
+          <p className="text-[var(--on-surface-variant)] font-['Inter',sans-serif]">Cargando...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen" style={{ background: '#f9f9f9' }}>
+    <div className="min-h-screen bg-[var(--surface)]">
       {/* Header */}
       <header 
-        className="bg-white sticky top-0 z-10"
+        className="bg-[var(--surface-container-lowest)] sticky top-0 z-10"
         style={{ 
           boxShadow: '0 4px 20px rgba(26, 28, 28, 0.04)'
         }}
@@ -231,74 +236,74 @@ export default function Home() {
               className="w-10 h-10 rounded-full flex items-center justify-center text-xl"
               style={{ 
                 background: user === 'el' 
-                  ? '#82f5c1' 
-                  : '#ffd9e2'
+                  ? 'var(--secondary-container)' 
+                  : 'var(--tertiary-container)'
               }}
             >
-              {user === 'el' 
-                ? (typeof window !== 'undefined' ? localStorage.getItem('duobalance-avatar-el') || '👨' : '👨')
-                : (typeof window !== 'undefined' ? localStorage.getItem('duobalance-avatar-ella') || '👩' : '👩')
-              }
+              {profileData.avatar}
             </div>
             <div>
               <h1 
                 className="text-lg font-bold"
-                style={{ color: '#1a1c1c', fontFamily: 'Manrope, sans-serif' }}
+                style={{ color: 'var(--on-surface)', fontFamily: 'Manrope, sans-serif' }}
               >
-                {user === 'el' 
-                  ? (typeof window !== 'undefined' ? localStorage.getItem('duobalance-nombre-el') || 'André' : 'André')
-                  : (typeof window !== 'undefined' ? localStorage.getItem('duobalance-nombre-ella') || 'Diana' : 'Diana')
-                }
+                {profileData.nombre}
               </h1>
-              <p className="text-xs" style={{ color: '#4a4455', fontFamily: 'Inter, sans-serif' }}>
+              <p className="text-xs" style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }}>
                 DuoBalance
               </p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-1 sm:gap-2">
             <button
               onClick={() => router.push('/settings')}
-              className="px-4 py-2 text-sm rounded-full transition-colors"
+              className="px-2 sm:px-4 py-2 text-xs sm:text-sm rounded-full transition-colors"
               style={{ 
-                color: '#4a4455', 
-                background: '#f3f3f3',
+                color: 'var(--on-surface-variant)', 
+                background: 'var(--surface-container-low)',
                 fontFamily: 'Inter, sans-serif'
               }}
             >
-              Ajustes
+              <span className="hidden sm:inline">Ajustes</span>
+              <span className="sm:hidden">⚙️</span>
             </button>
-            <button
-              onClick={handleCambiarUsuario}
-              className="px-4 py-2 text-sm rounded-full transition-colors"
-              style={{ 
-                color: '#4a4455', 
-                background: '#f3f3f3',
-                fontFamily: 'Inter, sans-serif'
-              }}
-            >
-              Cambiar
-            </button>
+            {!assignedProfile && (
+              <button
+                onClick={handleCambiarUsuario}
+                className="px-2 sm:px-4 py-2 text-xs sm:text-sm rounded-full transition-colors"
+                style={{ 
+                  color: 'var(--on-surface-variant)', 
+                  background: 'var(--surface-container-low)',
+                  fontFamily: 'Inter, sans-serif'
+                }}
+              >
+                <span className="hidden sm:inline">Cambiar</span>
+                <span className="sm:hidden">↔️</span>
+              </button>
+            )}
             <button
               onClick={handleLimpiarDatos}
-              className="px-4 py-2 text-sm rounded-full transition-colors"
+              className="px-2 sm:px-4 py-2 text-xs sm:text-sm rounded-full transition-colors"
               style={{ 
-                color: '#ba1a1a', 
-                background: '#ffdad6',
+                color: 'var(--error)', 
+                background: 'var(--error-container)',
                 fontFamily: 'Inter, sans-serif'
               }}
             >
-              Limpiar
+              <span className="hidden sm:inline">Limpiar</span>
+              <span className="sm:hidden">🗑️</span>
             </button>
             <button
               onClick={() => signOut()}
-              className="px-4 py-2 text-sm rounded-full transition-colors"
+              className="px-2 sm:px-4 py-2 text-xs sm:text-sm rounded-full transition-colors"
               style={{ 
-                color: '#630ed4', 
-                background: '#f3e8ff',
+                color: 'var(--primary)', 
+                background: isDark ? 'rgba(179, 136, 255, 0.15)' : '#f3e8ff',
                 fontFamily: 'Inter, sans-serif'
               }}
             >
-              Cerrar
+              <span className="hidden sm:inline">Cerrar</span>
+              <span className="sm:hidden">🚪</span>
             </button>
           </div>
         </div>
@@ -309,8 +314,8 @@ export default function Home() {
             onClick={() => setVista('resumen')}
             className="px-6 py-3 text-sm font-medium transition-colors"
             style={{ 
-              color: vista === 'resumen' ? '#630ed4' : '#4a4455',
-              borderBottom: vista === 'resumen' ? '3px solid #630ed4' : '3px solid transparent',
+              color: vista === 'resumen' ? 'var(--primary)' : 'var(--on-surface-variant)',
+              borderBottom: vista === 'resumen' ? '3px solid var(--primary)' : '3px solid transparent',
               fontFamily: 'Manrope, sans-serif'
             }}
           >
@@ -320,8 +325,8 @@ export default function Home() {
             onClick={() => setVista('historial')}
             className="px-6 py-3 text-sm font-medium transition-colors"
             style={{ 
-              color: vista === 'historial' ? '#630ed4' : '#4a4455',
-              borderBottom: vista === 'historial' ? '3px solid #630ed4' : '3px solid transparent',
+              color: vista === 'historial' ? 'var(--primary)' : 'var(--on-surface-variant)',
+              borderBottom: vista === 'historial' ? '3px solid var(--primary)' : '3px solid transparent',
               fontFamily: 'Manrope, sans-serif'
             }}
           >
@@ -333,8 +338,8 @@ export default function Home() {
       <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {vista === 'resumen' ? (
           <>
-            <Resumen gastos={getGastosActuales()} currentUser={user} />
-            <GastoForm quien={user} onAgregar={handleAgregarGasto} />
+            <Resumen gastos={getGastosActuales()} currentUser={currentUser} />
+            <GastoForm quien={currentUser} onAgregar={handleAgregarGasto} />
             <GastoList gastos={getGastosActuales()} />
           </>
         ) : (

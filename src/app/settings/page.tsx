@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
+import { useTheme } from '@/context/ThemeContext'
+import { useUserSettings } from '@/context/UserSettingsContext'
 import { UserRole } from '@/types'
 
 const AVATARES = [
@@ -13,63 +15,80 @@ const AVATARES = [
   '🐱', '🐶', '🐼', '🦊', '🐻', '🐨',
 ]
 
-const NOMBRE_KEY = 'duobalance-nombre'
-const AVATAR_KEY = 'duobalance-avatar'
-
 export default function SettingsPage() {
   const router = useRouter()
   const { user: authUser, signOut } = useAuth()
-  const [selectedUser, setSelectedUser] = useState<UserRole | null>(null)
+  const { isDark, toggleTheme } = useTheme()
+  const { settings, isLoading: settingsLoading, updateSettings } = useUserSettings()
+  
+  const [selectedUser, setSelectedUser] = useState<UserRole>('el')
   const [nombre, setNombre] = useState('')
   const [avatar, setAvatar] = useState('')
-  const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
 
-  // Cargar configuración actual
+  // Cargar configuración cuando esté disponible
   useEffect(() => {
-    if (!authUser) {
-      router.push('/login')
-      return
+    if (settings && !settingsLoading) {
+      // Determinar último perfil usado o default
+      const lastProfile = localStorage.getItem('duobalance-last-profile')
+      const perfilInicial = (lastProfile === 'el' || lastProfile === 'ella') ? lastProfile : 'el'
+      
+      setSelectedUser(perfilInicial as UserRole)
+      setNombre(perfilInicial === 'el' ? settings.nombre_el : settings.nombre_ella)
+      setAvatar(perfilInicial === 'el' ? settings.avatar_el : settings.avatar_ella)
     }
+  }, [settings, settingsLoading])
 
-    // Cargar perfiles de localStorage
-    const storedNombreEl = localStorage.getItem(`${NOMBRE_KEY}-el`)
-    const storedNombreElla = localStorage.getItem(`${NOMBRE_KEY}-ella`)
-    const storedAvatarEl = localStorage.getItem(`${AVATAR_KEY}-el`)
-    const storedAvatarElla = localStorage.getItem(`${AVATAR_KEY}-ella`)
-
-    // Si existe configuración previa, usarla; si no, usar valores por defecto
-    const nombreEl = storedNombreEl || 'André'
-    const nombreElla = storedNombreElla || 'Diana'
-    const avatarEl = storedAvatarEl || '👨'
-    const avatarElla = storedAvatarElla || '👩'
-
-    // Guardar valores por defecto si no existen
-    if (!storedNombreEl) localStorage.setItem(`${NOMBRE_KEY}-el`, nombreEl)
-    if (!storedNombreElla) localStorage.setItem(`${NOMBRE_KEY}-ella`, nombreElla)
-    if (!storedAvatarEl) localStorage.setItem(`${AVATAR_KEY}-el`, avatarEl)
-    if (!storedAvatarElla) localStorage.setItem(`${AVATAR_KEY}-ella`, avatarElla)
-
-    setNombre(selectedUser === 'el' ? nombreEl : nombreElla)
-    setAvatar(selectedUser === 'el' ? avatarEl : avatarElla)
-    setIsLoading(false)
-  }, [authUser, router, selectedUser])
-
-  // También inicializar selectedUser desde el primer perfil disponible
+  // Guardar último perfil usado cuando cambia
   useEffect(() => {
-    const storedPerfil = localStorage.getItem('duobalance-last-profile')
-    if (storedPerfil === 'el' || storedPerfil === 'ella') {
-      setSelectedUser(storedPerfil)
-    } else {
-      setSelectedUser('el')
+    if (selectedUser) {
+      localStorage.setItem('duobalance-last-profile', selectedUser)
     }
-  }, [])
+  }, [selectedUser])
 
-  const handleSave = () => {
-    if (!selectedUser) return
+  // Actualizar nombre/avatar cuando cambia el selectedUser
+  useEffect(() => {
+    if (settings) {
+      if (selectedUser === 'el') {
+        setNombre(settings.nombre_el)
+        setAvatar(settings.avatar_el)
+      } else {
+        setNombre(settings.nombre_ella)
+        setAvatar(settings.avatar_ella)
+      }
+    }
+  }, [selectedUser, settings])
+
+  const handleSave = async () => {
+    if (!selectedUser || isSaving) return
     
-    localStorage.setItem(`${NOMBRE_KEY}-${selectedUser}`, nombre)
-    localStorage.setItem(`${AVATAR_KEY}-${selectedUser}`, avatar)
-    alert('¡Cambios guardados!')
+    setIsSaving(true)
+    
+    const updates = selectedUser === 'el' 
+      ? { nombre_el: nombre, avatar_el: avatar }
+      : { nombre_ella: nombre, avatar_ella: avatar }
+    
+    const success = await updateSettings(updates)
+    setIsSaving(false)
+    
+    if (success) {
+      alert('¡Cambios guardados!')
+    } else {
+      alert('Error al guardar. Intenta de nuevo.')
+    }
+  }
+
+  const handleAssignProfile = async (profile: UserRole | null) => {
+    const success = await updateSettings({ assigned_profile: profile })
+    
+    if (success) {
+      alert(profile 
+        ? `✅ Perfil '${profile === 'el' ? settings?.nombre_el : settings?.nombre_ella}' asignado. Este usuario verá solo su perfil al entrar.`
+        : '✅ Asignación de perfil eliminada.'
+      )
+    } else {
+      alert('Error al guardar. Intenta de nuevo.')
+    }
   }
 
   const handleSignOut = async () => {
@@ -77,19 +96,19 @@ export default function SettingsPage() {
     router.push('/login')
   }
 
-  if (isLoading) {
+  if (settingsLoading || !settings) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#f9f9f9' }}>
-        <p>Cargando...</p>
+      <div className="min-h-screen flex items-center justify-center bg-[var(--surface)]">
+        <p style={{ color: 'var(--on-surface-variant)' }}>Cargando...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen" style={{ background: '#f9f9f9' }}>
+    <div className="min-h-screen bg-[var(--surface)]">
       {/* Header */}
       <header 
-        className="bg-white sticky top-0 z-10"
+        className="bg-[var(--surface-container-lowest)] sticky top-0 z-10"
         style={{ boxShadow: '0 4px 20px rgba(26, 28, 28, 0.04)' }}
       >
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -98,11 +117,11 @@ export default function SettingsPage() {
             className="flex items-center gap-2"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M15 18L9 12L15 6" stroke="#4a4455" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M15 18L9 12L15 6" stroke="var(--on-surface-variant)" strokeWidth="2" strokeLinecap="round"/>
             </svg>
-            <span style={{ color: '#4a4455', fontFamily: 'Inter, sans-serif' }}>Volver</span>
+            <span style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }} className="hidden sm:inline">Volver</span>
           </button>
-          <h1 className="text-lg font-bold" style={{ color: '#1a1c1c', fontFamily: 'Manrope, sans-serif' }}>
+          <h1 className="text-lg font-bold" style={{ color: 'var(--on-surface)', fontFamily: 'Manrope, sans-serif' }}>
             Configuración
           </h1>
           <div className="w-12"></div>
@@ -110,54 +129,142 @@ export default function SettingsPage() {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        {/* Selector de perfil */}
+        {/* Modo Oscuro */}
         <div 
-          className="bg-white p-6"
+          className="bg-[var(--surface-container-lowest)] p-6"
           style={{ borderRadius: '24px', boxShadow: '0 12px 40px rgba(26, 28, 28, 0.06)' }}
         >
-          <h2 className="text-xl font-semibold mb-4" style={{ color: '#1a1c1c', fontFamily: 'Manrope, sans-serif' }}>
-            ¿Qué perfil quieres configurar?
+          <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--on-surface)', fontFamily: 'Manrope, sans-serif' }}>
+            Apariencia
           </h2>
-          <div className="flex gap-4">
-            <button
-              onClick={() => {
-                setSelectedUser('el')
-                setNombre(localStorage.getItem(`${NOMBRE_KEY}-el`) || 'André')
-                setAvatar(localStorage.getItem(`${AVATAR_KEY}-el`) || '👨')
-              }}
-              className="flex-1 py-4 rounded-xl font-medium transition-all"
+          <button
+            onClick={toggleTheme}
+            className="w-full flex items-center justify-between px-6 py-4 rounded-xl transition-all"
+            style={{ 
+              background: 'var(--surface-container-low)',
+              color: 'var(--on-surface)'
+            }}
+          >
+            <div className="flex items-center gap-4">
+              <span className="text-2xl">{isDark ? '🌙' : '☀️'}</span>
+              <span style={{ fontFamily: 'Inter, sans-serif' }}>
+                {isDark ? 'Modo Oscuro' : 'Modo Claro'}
+              </span>
+            </div>
+            <div 
+              className="w-14 h-8 rounded-full p-1 transition-colors"
               style={{ 
-                background: selectedUser === 'el' ? '#82f5c1' : '#f3f3f3',
-                color: selectedUser === 'el' ? '#006c4a' : '#4a4455',
+                background: isDark ? 'var(--primary)' : '#ccc3d8'
+              }}
+            >
+              <div 
+                className="w-6 h-6 rounded-full transition-transform"
+                style={{ 
+                  background: '#fff',
+                  transform: isDark ? 'translateX(24px)' : 'translateX(0)'
+                }}
+              />
+            </div>
+          </button>
+        </div>
+
+        {/* Asignar perfil al usuario actual */}
+        <div 
+          className="bg-[var(--surface-container-lowest)] p-6"
+          style={{ borderRadius: '24px', boxShadow: '0 12px 40px rgba(26, 28, 28, 0.06)' }}
+        >
+          <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--on-surface)', fontFamily: 'Manrope, sans-serif' }}>
+            Restringir acceso
+          </h2>
+          <p className="text-sm mb-4" style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }}>
+            Asigna un perfil para que este usuario solo vea el suyo al iniciar sesión.
+          </p>
+          
+          <div className="flex gap-2 sm:gap-4">
+            <button
+              onClick={() => handleAssignProfile('el')}
+              className="flex-1 py-3 sm:py-4 px-2 sm:px-4 rounded-xl font-medium transition-all text-sm sm:text-base"
+              style={{ 
+                background: settings.assigned_profile === 'el' ? 'var(--secondary-container)' : 'var(--surface-container-low)',
+                color: settings.assigned_profile === 'el' ? 'var(--secondary)' : 'var(--on-surface-variant)',
                 fontFamily: 'Manrope, sans-serif'
               }}
             >
-              André
+              {settings.nombre_el}
             </button>
             <button
-              onClick={() => {
-                setSelectedUser('ella')
-                setNombre(localStorage.getItem(`${NOMBRE_KEY}-ella`) || 'Diana')
-                setAvatar(localStorage.getItem(`${AVATAR_KEY}-ella`) || '👩')
-              }}
-              className="flex-1 py-4 rounded-xl font-medium transition-all"
+              onClick={() => handleAssignProfile('ella')}
+              className="flex-1 py-3 sm:py-4 px-2 sm:px-4 rounded-xl font-medium transition-all text-sm sm:text-base"
               style={{ 
-                background: selectedUser === 'ella' ? '#ffd9e2' : '#f3f3f3',
-                color: selectedUser === 'ella' ? '#9d0050' : '#4a4455',
+                background: settings.assigned_profile === 'ella' ? 'var(--tertiary-container)' : 'var(--surface-container-low)',
+                color: settings.assigned_profile === 'ella' ? 'var(--tertiary)' : 'var(--on-surface-variant)',
                 fontFamily: 'Manrope, sans-serif'
               }}
             >
-              Diana
+              {settings.nombre_ella}
+            </button>
+            {settings.assigned_profile && (
+              <button
+                onClick={() => handleAssignProfile(null)}
+                className="px-3 sm:px-4 py-3 sm:py-4 rounded-xl font-medium transition-all"
+                style={{ 
+                  background: 'var(--error-container)',
+                  color: 'var(--error)',
+                  fontFamily: 'Manrope, sans-serif'
+                }}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+          
+          {settings.assigned_profile && (
+            <p className="mt-3 text-sm" style={{ color: 'var(--primary)', fontFamily: 'Inter, sans-serif' }}>
+              ✓ Perfil '{settings.assigned_profile === 'el' ? settings.nombre_el : settings.nombre_ella}' asignado
+            </p>
+          )}
+        </div>
+
+        {/* Selector de perfil */}
+        <div 
+          className="bg-[var(--surface-container-lowest)] p-6"
+          style={{ borderRadius: '24px', boxShadow: '0 12px 40px rgba(26, 28, 28, 0.06)' }}
+        >
+          <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--on-surface)', fontFamily: 'Manrope, sans-serif' }}>
+            ¿Qué perfil quieres configurar?
+          </h2>
+          <div className="flex gap-2 sm:gap-4">
+            <button
+              onClick={() => setSelectedUser('el')}
+              className="flex-1 py-3 sm:py-4 px-2 sm:px-4 rounded-xl font-medium transition-all text-sm sm:text-base"
+              style={{ 
+                background: selectedUser === 'el' ? 'var(--secondary-container)' : 'var(--surface-container-low)',
+                color: selectedUser === 'el' ? 'var(--secondary)' : 'var(--on-surface-variant)',
+                fontFamily: 'Manrope, sans-serif'
+              }}
+            >
+              {settings.nombre_el}
+            </button>
+            <button
+              onClick={() => setSelectedUser('ella')}
+              className="flex-1 py-3 sm:py-4 px-2 sm:px-4 rounded-xl font-medium transition-all text-sm sm:text-base"
+              style={{ 
+                background: selectedUser === 'ella' ? 'var(--tertiary-container)' : 'var(--surface-container-low)',
+                color: selectedUser === 'ella' ? 'var(--tertiary)' : 'var(--on-surface-variant)',
+                fontFamily: 'Manrope, sans-serif'
+              }}
+            >
+              {settings.nombre_ella}
             </button>
           </div>
         </div>
 
         {/* Nombre */}
         <div 
-          className="bg-white p-6"
+          className="bg-[var(--surface-container-lowest)] p-6"
           style={{ borderRadius: '24px', boxShadow: '0 12px 40px rgba(26, 28, 28, 0.06)' }}
         >
-          <h2 className="text-xl font-semibold mb-4" style={{ color: '#1a1c1c', fontFamily: 'Manrope, sans-serif' }}>
+          <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--on-surface)', fontFamily: 'Manrope, sans-serif' }}>
             Nombre
           </h2>
           <input
@@ -166,11 +273,12 @@ export default function SettingsPage() {
             onChange={(e) => setNombre(e.target.value)}
             className="w-full px-5 py-4 text-base"
             style={{ 
-              background: '#f3f3f3',
+              background: 'var(--surface-container-low)',
               borderRadius: '16px',
               border: '2px solid transparent',
               fontFamily: 'Inter, sans-serif',
-              outline: 'none'
+              outline: 'none',
+              color: 'var(--on-surface)'
             }}
             placeholder="Tu nombre"
           />
@@ -178,10 +286,10 @@ export default function SettingsPage() {
 
         {/* Avatar */}
         <div 
-          className="bg-white p-6"
+          className="bg-[var(--surface-container-lowest)] p-6"
           style={{ borderRadius: '24px', boxShadow: '0 12px 40px rgba(26, 28, 28, 0.06)' }}
         >
-          <h2 className="text-xl font-semibold mb-4" style={{ color: '#1a1c1c', fontFamily: 'Manrope, sans-serif' }}>
+          <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--on-surface)', fontFamily: 'Manrope, sans-serif' }}>
             Avatar
           </h2>
           
@@ -190,7 +298,7 @@ export default function SettingsPage() {
             <div 
               className="w-24 h-24 rounded-full flex items-center justify-center text-5xl"
               style={{ 
-                background: selectedUser === 'el' ? '#82f5c1' : '#ffd9e2'
+                background: selectedUser === 'el' ? 'var(--secondary-container)' : 'var(--tertiary-container)'
               }}
             >
               {avatar}
@@ -205,8 +313,8 @@ export default function SettingsPage() {
                 onClick={() => setAvatar(a)}
                 className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl transition-all"
                 style={{ 
-                  background: avatar === a ? (selectedUser === 'el' ? '#82f5c1' : '#ffd9e2') : '#f3f3f3',
-                  border: avatar === a ? `2px solid ${selectedUser === 'el' ? '#006c4a' : '#9d0050'}` : '2px solid transparent'
+                  background: avatar === a ? (selectedUser === 'el' ? 'var(--secondary-container)' : 'var(--tertiary-container)') : 'var(--surface-container-low)',
+                  border: avatar === a ? `2px solid ${selectedUser === 'el' ? 'var(--secondary)' : 'var(--tertiary)'}` : '2px solid transparent'
                 }}
               >
                 {a}
@@ -218,14 +326,15 @@ export default function SettingsPage() {
         {/* Botón guardar */}
         <button
           onClick={handleSave}
-          className="w-full py-4 text-base font-semibold rounded-full"
+          disabled={isSaving}
+          className="w-full py-4 text-base font-semibold rounded-full disabled:opacity-50"
           style={{ 
-            background: 'linear-gradient(135deg, #630ed4 0%, #7c3aed 100%)',
-            color: '#ffffff',
+            background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%)',
+            color: 'var(--on-primary)',
             fontFamily: 'Inter, sans-serif'
           }}
         >
-          Guardar cambios
+          {isSaving ? 'Guardando...' : 'Guardar cambios'}
         </button>
 
         {/* Cerrar sesión */}
@@ -233,8 +342,8 @@ export default function SettingsPage() {
           onClick={handleSignOut}
           className="w-full py-4 text-base font-semibold rounded-full"
           style={{ 
-            background: '#ffdad6',
-            color: '#ba1a1a',
+            background: 'var(--error-container)',
+            color: 'var(--error)',
             fontFamily: 'Inter, sans-serif'
           }}
         >

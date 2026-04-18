@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Manrope } from "next/font/google";
 import { AuthProvider } from "@/context/AuthContext";
+import { ThemeProvider } from "@/context/ThemeContext";
+import { UserSettingsProvider } from "@/context/UserSettingsContext";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
@@ -18,10 +20,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es-MX" className="h-full">
-      <body className={`${inter.variable} ${manrope.variable} h-full antialiased`} style={{ background: '#f9f9f9' }}>
+    <html lang="es-MX" className="h-full light" style={{ colorScheme: 'light dark' }}>
+      <body className={`${inter.variable} ${manrope.variable} h-full antialiased light`}>
         <AuthProvider>
-          {children}
+          <ThemeProvider>
+            <UserSettingsProvider>
+              {children}
+            </UserSettingsProvider>
+          </ThemeProvider>
         </AuthProvider>
       </body>
     </html>

@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  /* Design System: DuoBalance */
+  /* Design System: DuoBalance - Light Mode */
   --surface: #f9f9f9;
   --surface-container-low: #f3f3f3;
   --surface-container-lowest: #ffffff;
@@ -25,12 +25,44 @@
   
   --outline: #7b7487;
   --outline-variant: #ccc3d8;
+  
+  --error: #ba1a1a;
+  --error-container: #ffdad6;
+}
+
+/* Dark Mode */
+.dark {
+  --surface: #121212;
+  --surface-container-low: #1e1e1e;
+  --surface-container-lowest: #2a2a2a;
+  
+  --primary: #b388ff;
+  --primary-container: #7c3aed;
+  
+  --secondary: #82f5c1;
+  --secondary-container: #006c4a;
+  
+  --tertiary: #ffd9e2;
+  --tertiary-container: #9d0050;
+  
+  --on-surface: #e6e1e5;
+  --on-surface-variant: #cac4d0;
+  --on-primary: #1a1c1c;
+  --on-secondary: #1a1c1c;
+  --on-tertiary: #1a1c1c;
+  
+  --outline: #938f99;
+  --outline-variant: #49454f;
+  
+  --error: #f2b8b5;
+  --error-container: #8c1d18;
 }
 
 body {
   color: var(--on-surface);
   background: var(--surface);
   font-family: 'Inter', sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Custom shadows - Ambient, not harsh */

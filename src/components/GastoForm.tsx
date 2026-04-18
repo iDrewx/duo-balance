@@ -30,7 +30,7 @@ export default function GastoForm({ quien, onAgregar }: GastoFormProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.1 }}
       onSubmit={handleSubmit} 
-      className="bg-white p-6"
+      className="bg-[var(--surface-container-lowest)] p-6"
       style={{ 
         borderRadius: '24px', 
         boxShadow: '0 12px 40px rgba(26, 28, 28, 0.06)'
@@ -38,7 +38,7 @@ export default function GastoForm({ quien, onAgregar }: GastoFormProps) {
     >
       <h2 
         className="text-xl font-semibold mb-6"
-        style={{ color: '#1a1c1c', fontFamily: 'Manrope, sans-serif' }}
+        style={{ color: 'var(--on-surface)', fontFamily: 'Manrope, sans-serif' }}
       >
         Agregar gasto
       </h2>
@@ -47,7 +47,7 @@ export default function GastoForm({ quien, onAgregar }: GastoFormProps) {
         <div>
           <label 
             className="block text-sm font-medium mb-2"
-            style={{ color: '#4a4455', fontFamily: 'Inter, sans-serif' }}
+            style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }}
           >
             Descripcion
           </label>
@@ -58,10 +58,10 @@ export default function GastoForm({ quien, onAgregar }: GastoFormProps) {
             placeholder="Ej: Supermercado"
             className="w-full px-4 py-4 outline-none transition-all"
             style={{ 
-              background: '#f3f3f3',
+              background: 'var(--surface-container-low)',
               border: 'none',
               borderRadius: '16px',
-              color: '#1a1c1c',
+              color: 'var(--on-surface)',
               fontFamily: 'Inter, sans-serif'
             }}
             required
@@ -71,7 +71,7 @@ export default function GastoForm({ quien, onAgregar }: GastoFormProps) {
         <div>
           <label 
             className="block text-sm font-medium mb-2"
-            style={{ color: '#4a4455', fontFamily: 'Inter, sans-serif' }}
+            style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }}
           >
             Monto ($)
           </label>
@@ -84,10 +84,10 @@ export default function GastoForm({ quien, onAgregar }: GastoFormProps) {
             min="0"
             className="w-full px-4 py-4 outline-none transition-all"
             style={{ 
-              background: '#f3f3f3',
+              background: 'var(--surface-container-low)',
               border: 'none',
               borderRadius: '16px',
-              color: '#1a1c1c',
+              color: 'var(--on-surface)',
               fontFamily: 'Inter, sans-serif'
             }}
             required
@@ -97,7 +97,7 @@ export default function GastoForm({ quien, onAgregar }: GastoFormProps) {
         <div>
           <label 
             className="block text-sm font-medium mb-3"
-            style={{ color: '#4a4455', fontFamily: 'Inter, sans-serif' }}
+            style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }}
           >
             Tipo de gasto
           </label>
@@ -107,8 +107,8 @@ export default function GastoForm({ quien, onAgregar }: GastoFormProps) {
               onClick={() => setTipo('propio')}
               className="px-6 py-4 font-medium transition-all"
               style={{ 
-                background: tipo === 'propio' ? '#1a1c1c' : '#f3f3f3',
-                color: tipo === 'propio' ? '#ffffff' : '#4a4455',
+                background: tipo === 'propio' ? 'var(--on-surface)' : 'var(--surface-container-low)',
+                color: tipo === 'propio' ? 'var(--surface)' : 'var(--on-surface-variant)',
                 borderRadius: '9999px',
                 fontFamily: 'Inter, sans-serif'
               }}
@@ -121,9 +121,9 @@ export default function GastoForm({ quien, onAgregar }: GastoFormProps) {
               className="px-6 py-4 font-medium transition-all"
               style={{ 
                 background: tipo === 'compartido' 
-                  ? 'linear-gradient(135deg, #630ed4 0%, #7c3aed 100%)' 
-                  : '#f3f3f3',
-                color: tipo === 'compartido' ? '#ffffff' : '#4a4455',
+                  ? 'linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%)' 
+                  : 'var(--surface-container-low)',
+                color: tipo === 'compartido' ? '#ffffff' : 'var(--on-surface-variant)',
                 borderRadius: '9999px',
                 fontFamily: 'Inter, sans-serif',
                 boxShadow: tipo === 'compartido' ? '0 8px 24px rgba(99, 14, 212, 0.3)' : 'none'
@@ -138,8 +138,8 @@ export default function GastoForm({ quien, onAgregar }: GastoFormProps) {
           type="submit"
           className="w-full py-4 font-semibold rounded-full transition-all flex items-center justify-center gap-2"
           style={{ 
-            background: 'linear-gradient(135deg, #630ed4 0%, #7c3aed 100%)',
-            color: '#ffffff',
+            background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%)',
+            color: 'var(--on-primary)',
             fontFamily: 'Inter, sans-serif',
             boxShadow: '0 8px 24px rgba(99, 14, 212, 0.3)'
           }}
