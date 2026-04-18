@@ -9,6 +9,7 @@ const manrope = Manrope({ subsets: ["latin"], variable: '--font-manrope' });
 export const metadata: Metadata = {
   title: "DuoBalance",
   description: "Control de gastos compartidos para dos",
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
