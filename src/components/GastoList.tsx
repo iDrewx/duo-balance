@@ -47,14 +47,22 @@ export default function GastoList({ gastos, onDelete }: GastoListProps) {
   }
 
   const confirmDeleteAction = async () => {
-    if (confirmDelete.id && onDelete) {
-      setDeletingId(confirmDelete.id)
-      setConfirmDelete({ show: false, id: null })
-      try {
-        await onDelete(confirmDelete.id)
-      } finally {
-        setDeletingId(null)
-      }
+    const gastoId = confirmDelete.id
+    if (gastoId) {
+      // Trigger exit animation first
+      setConfirmDelete({ show: false, id: gastoId })
+      
+      // Wait for animation, then delete
+      setTimeout(async () => {
+        setDeletingId(gastoId)
+        try {
+          if (onDelete) {
+            await onDelete(gastoId)
+          }
+        } finally {
+          setDeletingId(null)
+        }
+      }, 300)
     }
   }
 
@@ -123,7 +131,7 @@ export default function GastoList({ gastos, onDelete }: GastoListProps) {
               isDeleting={deletingId === gasto.id}
               isNew={newlyAdded.has(gasto.id)}
               animationDelay={index * 0.05}
-              onDelete={() => handleDeleteClick(gasto.id)}
+              onDeleteClick={() => handleDeleteClick(gasto.id)}
             />
           ))}
         </div>
@@ -205,7 +213,7 @@ function GastoItem({
   isDeleting,
   isNew,
   animationDelay,
-  onDelete,
+  onDeleteClick,
 }: {
   gasto: Gasto
   avatarEl: string
@@ -214,20 +222,13 @@ function GastoItem({
   isDeleting: boolean
   isNew: boolean
   animationDelay: number
-  onDelete: () => void
+  onDeleteClick: () => void
 }) {
-  const [isExiting, setIsExiting] = useState(false)
-
-  const handleDelete = () => {
-    setIsExiting(true)
-    setTimeout(onDelete, 300)
-  }
-
   return (
     <div 
       className={`px-6 py-4 flex items-center justify-between border-b transition-all duration-300 ${
         isNew ? 'animate-slide-in' : ''
-      } ${isExiting ? 'animate-slide-out opacity-0' : ''}`}
+      } ${isDeleting ? 'animate-slide-out opacity-0' : ''}`}
       style={{ 
         borderColor: 'var(--surface-container-low)',
         background: 'var(--surface-container-lowest)',
@@ -330,7 +331,7 @@ function GastoItem({
         </span>
         
         <button
-          onClick={handleDelete}
+          onClick={onDeleteClick}
           disabled={isDeleting}
           className="p-2 rounded-full transition-all hover:scale-110 active:scale-95"
           style={{ 
