@@ -116,12 +116,18 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
     setOpenMenuId(null)
   }
 
-  // Cerrar menú al hacer click fuera
+  // Cerrar menú al hacer click fuera o al scrollear
   useEffect(() => {
     const handleClickOutside = () => closeMenu()
+    const handleScroll = () => closeMenu()
+    
     if (openMenuId) {
       document.addEventListener('click', handleClickOutside)
-      return () => document.removeEventListener('click', handleClickOutside)
+      document.addEventListener('scroll', handleScroll, { passive: true })
+      return () => {
+        document.removeEventListener('click', handleClickOutside)
+        document.removeEventListener('scroll', handleScroll)
+      }
     }
   }, [openMenuId])
 
@@ -551,7 +557,7 @@ function GastoItem({
       {/* Dropdown Menu */}
       {isMenuOpen && menuPosition && (
         <div 
-          className="fixed z-50 min-w-[140px] py-2"
+          className="fixed z-50 min-w-[160px] py-2"
           style={{ 
             top: menuPosition.top, 
             left: menuPosition.left,
@@ -561,6 +567,19 @@ function GastoItem({
           }}
           onClick={(e) => e.stopPropagation()}
         >
+          {/* Header con descripción del gasto */}
+          <div 
+            className="px-4 py-2 border-b"
+            style={{ 
+              borderColor: 'var(--surface-container-low)',
+              color: 'var(--on-surface-variant)',
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '12px'
+            }}
+          >
+            {gasto.descripcion}
+          </div>
+          
           <button
             onClick={() => { onEditClick(); onCloseMenu?.() }}
             className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-[var(--surface-container-low)] transition-colors"
