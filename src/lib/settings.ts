@@ -68,7 +68,7 @@ export async function updateUserSetting(key: keyof UserSettings, value: any): Pr
 }
 
 // Guardar en localStorage como backup/cache
-const LOCAL_STORAGE_KEY = 'duobalance-settings-cache'
+const LOCAL_SETTINGS_KEY = 'duobalance-settings-cache'
 
 export function cacheSettingsInLocal(settings: UserSettings) {
   localStorage.setItem(LOCAL_SETTINGS_KEY, JSON.stringify(settings))
@@ -85,8 +85,6 @@ export function getCachedSettings(): UserSettings | null {
   }
   return null
 }
-
-const LOCAL_SETTINGS_KEY = 'duobalance-settings-cache'
 
 // Keys locales para fallback
 export const NOMBRE_KEY = 'duobalance-nombre'

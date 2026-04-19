@@ -20,8 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es-MX" className="h-full light" style={{ colorScheme: 'light dark' }}>
-      <body className={`${inter.variable} ${manrope.variable} h-full antialiased light`}>
+    <html lang="es-MX" className="h-full" style={{ colorScheme: 'light dark' }}>
+      <body className={`${inter.variable} ${manrope.variable} h-full antialiased`}>
         <AuthProvider>
           <ThemeProvider>
             <UserSettingsProvider>

@@ -156,6 +156,36 @@ export default function Home() {
     }
   }
 
+  const handleDeleteGasto = useCallback(async (gastoId: string) => {
+    const supabase = getSupabase()
+    if (supabase) {
+      try {
+        const { error } = await supabase
+          .from('gastos')
+          .delete()
+          .eq('id', gastoId)
+
+        if (error) {
+          console.error('Error deleting gasto:', error)
+        }
+      } catch (err) {
+        console.error('Error:', err)
+      }
+    }
+    // Update local state
+    setGastos(prev => prev.filter(g => g.id !== gastoId))
+    // Also update localStorage
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (stored) {
+      try {
+        const localGastos = JSON.parse(stored)
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(localGastos.filter((g: Gasto) => g.id !== gastoId)))
+      } catch (e) {
+        console.error('Error updating localStorage:', e)
+      }
+    }
+  }, [])
+
   const getGastosActuales = useCallback(() => {
     const ahora = new Date()
     const hace30Dias = new Date(ahora.getTime() - 30 * 24 * 60 * 60 * 1000)
@@ -340,7 +370,7 @@ export default function Home() {
           <>
             <Resumen gastos={getGastosActuales()} currentUser={currentUser} />
             <GastoForm quien={currentUser} onAgregar={handleAgregarGasto} />
-            <GastoList gastos={getGastosActuales()} />
+            <GastoList gastos={getGastosActuales()} onDelete={handleDeleteGasto} />
           </>
         ) : (
           <Historial gastos={gastos} />
