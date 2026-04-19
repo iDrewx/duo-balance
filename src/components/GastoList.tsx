@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion'
+import { motion, useMotionValue, useTransform } from 'framer-motion'
 import { Gasto } from '@/types'
 import { useTheme } from '@/context/ThemeContext'
 import { useUserSettings } from '@/context/UserSettingsContext'
@@ -34,6 +34,7 @@ export default function GastoList({ gastos, onDelete }: GastoListProps) {
 
   const avatarEl = settings?.avatar_el || '👨'
   const avatarElla = settings?.avatar_ella || '👩'
+
   if (gastos.length === 0) {
     return (
       <div 
@@ -84,31 +85,29 @@ export default function GastoList({ gastos, onDelete }: GastoListProps) {
       </div>
       
       <div>
-        <AnimatePresence initial={false}>
-          {sortedGastos.map((gasto) => (
-            <SwipeableGasto
-              key={gasto.id}
-              gasto={gasto}
-              avatarEl={avatarEl}
-              avatarElla={avatarElla}
-              isDark={isDark}
-              isDeleting={deletingId === gasto.id}
-              onDelete={async () => {
-                if (onDelete) {
-                  const confirmed = confirm('¿Eliminar este gasto?')
-                  if (confirmed) {
-                    setDeletingId(gasto.id)
-                    try {
-                      await onDelete(gasto.id)
-                    } finally {
-                      setDeletingId(null)
-                    }
+        {sortedGastos.map((gasto) => (
+          <SwipeableGasto
+            key={gasto.id}
+            gasto={gasto}
+            avatarEl={avatarEl}
+            avatarElla={avatarElla}
+            isDark={isDark}
+            isDeleting={deletingId === gasto.id}
+            onDelete={async () => {
+              if (onDelete) {
+                const confirmed = confirm('¿Eliminar este gasto?')
+                if (confirmed) {
+                  setDeletingId(gasto.id)
+                  try {
+                    await onDelete(gasto.id)
+                  } finally {
+                    setDeletingId(null)
                   }
                 }
-              }}
-            />
-          ))}
-        </AnimatePresence>
+              }
+            }}
+          />
+        ))}
       </div>
     </div>
   )
