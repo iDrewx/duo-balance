@@ -169,7 +169,6 @@ function SwipeableGasto({
 
       {/* Item swipeable */}
       <motion.div
-        style={{ x }}
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.3}
@@ -180,11 +179,8 @@ function SwipeableGasto({
         }}
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
-        className="px-6 py-4 flex items-center justify-between cursor-grab active:cursor-grabbing"
-        style={{
-          background: 'var(--surface-container-lowest)',
-          borderBottom: '1px solid var(--surface-container-low)',
-        }}
+        className="px-6 py-4 flex items-center justify-between cursor-grab active:cursor-grabbing bg-[var(--surface-container-lowest)]"
+        style={{ borderBottom: '1px solid var(--surface-container-low)' }}
       >
         <div className="flex items-center gap-4">
           {/* Avatar del usuario */}
