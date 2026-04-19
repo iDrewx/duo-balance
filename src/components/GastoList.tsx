@@ -561,7 +561,7 @@ function GastoItem({
           style={{ 
             top: menuPosition.top, 
             left: menuPosition.left,
-            background: 'var(--surface-container-high)',
+            background: 'var(--surface-container-low)',
             borderRadius: '12px',
             boxShadow: '0 8px 24px rgba(0,0,0,0.15)'
           }}
