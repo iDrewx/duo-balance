@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Gasto } from '@/types'
 import { useTheme } from '@/context/ThemeContext'
 import { useUserSettings } from '@/context/UserSettingsContext'
@@ -31,9 +31,16 @@ export default function GastoList({ gastos, onDelete }: GastoListProps) {
   const { settings } = useUserSettings()
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<{ show: boolean; id: string | null }>({ show: false, id: null })
+  const [newlyAdded, setNewlyAdded] = useState<Set<string>>(new Set())
 
   const avatarEl = settings?.avatar_el || '👨'
   const avatarElla = settings?.avatar_ella || '👩'
+
+  // Track newly added expenses for animation
+  useEffect(() => {
+    const newItems = gastos.slice(0, 3).map(g => g.id)
+    setNewlyAdded(new Set(newItems))
+  }, [])
 
   const handleDeleteClick = (gastoId: string) => {
     setConfirmDelete({ show: true, id: gastoId })
@@ -106,7 +113,7 @@ export default function GastoList({ gastos, onDelete }: GastoListProps) {
         </div>
         
         <div>
-          {sortedGastos.map((gasto) => (
+          {sortedGastos.map((gasto, index) => (
             <GastoItem
               key={gasto.id}
               gasto={gasto}
@@ -114,6 +121,8 @@ export default function GastoList({ gastos, onDelete }: GastoListProps) {
               avatarElla={avatarElla}
               isDark={isDark}
               isDeleting={deletingId === gasto.id}
+              isNew={newlyAdded.has(gasto.id)}
+              animationDelay={index * 0.05}
               onDelete={() => handleDeleteClick(gasto.id)}
             />
           ))}
@@ -187,13 +196,15 @@ export default function GastoList({ gastos, onDelete }: GastoListProps) {
   )
 }
 
-// Componente individual de gasto
+// Componente individual de gasto con animaciones
 function GastoItem({
   gasto,
   avatarEl,
   avatarElla,
   isDark,
   isDeleting,
+  isNew,
+  animationDelay,
   onDelete,
 }: {
   gasto: Gasto
@@ -201,16 +212,59 @@ function GastoItem({
   avatarElla: string
   isDark: boolean
   isDeleting: boolean
+  isNew: boolean
+  animationDelay: number
   onDelete: () => void
 }) {
+  const [isExiting, setIsExiting] = useState(false)
+
+  const handleDelete = () => {
+    setIsExiting(true)
+    setTimeout(onDelete, 300)
+  }
+
   return (
     <div 
-      className="px-6 py-4 flex items-center justify-between border-b"
+      className={`px-6 py-4 flex items-center justify-between border-b transition-all duration-300 ${
+        isNew ? 'animate-slide-in' : ''
+      } ${isExiting ? 'animate-slide-out opacity-0' : ''}`}
       style={{ 
         borderColor: 'var(--surface-container-low)',
         background: 'var(--surface-container-lowest)',
+        animationDelay: `${animationDelay}s`,
+        ['--animate-slide-in' as string]: 'slideIn 0.4s ease-out forwards',
+        ['--animate-slide-out' as string]: 'slideOut 0.3s ease-in forwards',
       }}
     >
+      <style jsx>{`
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @keyframes slideOut {
+          from {
+            opacity: 1;
+            transform: translateX(0);
+          }
+          to {
+            opacity: 0;
+            transform: translateX(100px);
+          }
+        }
+        .animate-slide-in {
+          animation: slideIn 0.4s ease-out forwards;
+        }
+        .animate-slide-out {
+          animation: slideOut 0.3s ease-in forwards;
+        }
+      `}</style>
+
       <div className="flex items-center gap-4 flex-1 min-w-0">
         {/* Avatar del usuario */}
         <div
@@ -276,9 +330,9 @@ function GastoItem({
         </span>
         
         <button
-          onClick={onDelete}
+          onClick={handleDelete}
           disabled={isDeleting}
-          className="p-2 rounded-full transition-colors"
+          className="p-2 rounded-full transition-all hover:scale-110 active:scale-95"
           style={{ 
             background: 'transparent',
             color: 'var(--error)',
