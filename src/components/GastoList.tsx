@@ -63,6 +63,8 @@ export default function GastoList({ gastos, onDelete }: GastoListProps) {
   const sortedGastos = [...gastos].sort((a, b) => 
     new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
   )
+  
+  console.log('📋 GastoList render:', { gastosLength: gastos.length, sortedLength: sortedGastos.length })
 
   return (
     <div 
@@ -129,6 +131,7 @@ function SwipeableGasto({
   isDeleting: boolean
   onDelete: () => Promise<void>
 }) {
+  console.log('🎯 SwipeableGasto render:', gasto.id, gasto.descripcion)
   const x = useMotionValue(0)
   const background = useTransform(
     x,
