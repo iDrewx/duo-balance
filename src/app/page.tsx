@@ -7,6 +7,7 @@ import GastoForm from '@/components/GastoForm'
 import GastoList from '@/components/GastoList'
 import Resumen from '@/components/Resumen'
 import Historial from '@/components/Historial'
+import ConfirmModal from '@/components/ConfirmModal'
 import { useAuth } from '@/context/AuthContext'
 import { useTheme } from '@/context/ThemeContext'
 import { useUserSettings } from '@/context/UserSettingsContext'
@@ -27,6 +28,7 @@ export default function Home() {
   const [isClient, setIsClient] = useState(false)
   const [vista, setVista] = useState<'resumen' | 'historial'>('resumen')
   const [isLoading, setIsLoading] = useState(true)
+  const [confirmLimpiar, setConfirmLimpiar] = useState(false)
 
   // Cargar perfil asignado automáticamente al iniciar
   useEffect(() => {
@@ -142,18 +144,25 @@ export default function Home() {
   }
 
   const handleLimpiarDatos = async () => {
-    if (confirm('¿Estás seguro de que quieres borrar todos los gastos?')) {
-      const supabase = getSupabase()
-      if (supabase) {
-        try {
-          await supabase.from('gastos').delete().neq('id', '00000000-0000-0000-0000-000000000000')
-        } catch (err) {
-          console.error('Error:', err)
-        }
+    setConfirmLimpiar(true)
+  }
+
+  const confirmLimpiarAction = async () => {
+    setConfirmLimpiar(false)
+    const supabase = getSupabase()
+    if (supabase) {
+      try {
+        await supabase.from('gastos').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+      } catch (err) {
+        console.error('Error:', err)
       }
-      setGastos([])
-      localStorage.removeItem(STORAGE_KEY)
     }
+    setGastos([])
+    localStorage.removeItem(STORAGE_KEY)
+  }
+
+  const cancelLimpiar = () => {
+    setConfirmLimpiar(false)
   }
 
   const handleDeleteGasto = useCallback(async (gastoId: string) => {
@@ -385,6 +394,14 @@ export default function Home() {
           <Historial gastos={gastos} />
         )}
       </main>
+
+      <ConfirmModal
+        show={confirmLimpiar}
+        title="¿Limpiar gastos?"
+        message="Esto eliminará todos los gastos. Esta acción no se puede deshacer."
+        onConfirm={confirmLimpiarAction}
+        onCancel={cancelLimpiar}
+      />
     </div>
   )
 }

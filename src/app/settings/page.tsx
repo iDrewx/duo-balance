@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import ConfirmModal from '@/components/ConfirmModal'
 import { useAuth } from '@/context/AuthContext'
 import { useTheme } from '@/context/ThemeContext'
 import { useUserSettings } from '@/context/UserSettingsContext'
@@ -25,6 +26,21 @@ export default function SettingsPage() {
   const [nombre, setNombre] = useState('')
   const [avatar, setAvatar] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+  const [confirmAssign, setConfirmAssign] = useState<{ show: boolean; profile: UserRole | null }>({ show: false, profile: null })
+
+  const handleAssignButtonClick = (profile: UserRole | null) => {
+    setConfirmAssign({ show: true, profile })
+  }
+
+  const confirmAssignAction = async () => {
+    const { profile } = confirmAssign
+    setConfirmAssign({ show: false, profile: null })
+    await handleAssignProfile(profile)
+  }
+
+  const cancelAssign = () => {
+    setConfirmAssign({ show: false, profile: null })
+  }
 
   // Cargar configuración cuando esté disponible
   useEffect(() => {
@@ -82,10 +98,7 @@ export default function SettingsPage() {
     const success = await updateSettings({ assigned_profile: profile })
     
     if (success) {
-      alert(profile 
-        ? `✅ Perfil '${profile === 'el' ? settings?.nombre_el : settings?.nombre_ella}' asignado. Este usuario verá solo su perfil al entrar.`
-        : '✅ Asignación de perfil eliminada.'
-      )
+      // Silent success - user sees the change in UI
     } else {
       alert('Error al guardar. Intenta de nuevo.')
     }
@@ -182,7 +195,7 @@ export default function SettingsPage() {
           
           <div className="flex gap-2 sm:gap-4">
             <button
-              onClick={() => handleAssignProfile('el')}
+              onClick={() => handleAssignButtonClick('el')}
               className="flex-1 py-3 sm:py-4 px-2 sm:px-4 rounded-xl font-medium transition-all text-sm sm:text-base"
               style={{ 
                 background: settings.assigned_profile === 'el' ? 'var(--secondary-container)' : 'var(--surface-container-low)',
@@ -193,7 +206,7 @@ export default function SettingsPage() {
               {settings.nombre_el}
             </button>
             <button
-              onClick={() => handleAssignProfile('ella')}
+              onClick={() => handleAssignButtonClick('ella')}
               className="flex-1 py-3 sm:py-4 px-2 sm:px-4 rounded-xl font-medium transition-all text-sm sm:text-base"
               style={{ 
                 background: settings.assigned_profile === 'ella' ? 'var(--tertiary-container)' : 'var(--surface-container-low)',
@@ -205,7 +218,7 @@ export default function SettingsPage() {
             </button>
             {settings.assigned_profile && (
               <button
-                onClick={() => handleAssignProfile(null)}
+                onClick={() => handleAssignButtonClick(null)}
                 className="px-3 sm:px-4 py-3 sm:py-4 rounded-xl font-medium transition-all"
                 style={{ 
                   background: 'var(--error-container)',
@@ -349,6 +362,16 @@ export default function SettingsPage() {
         >
           Cerrar sesión
         </button>
+
+        <ConfirmModal
+          show={confirmAssign.show}
+          title={`Asignar ${confirmAssign.profile ? (confirmAssign.profile === 'el' ? settings?.nombre_el : settings?.nombre_ella) : ''}?`}
+          message={`Este perfil será el único que pueda usar la app.`}
+          confirmText="Asignar"
+          variant="primary"
+          onConfirm={confirmAssignAction}
+          onCancel={cancelAssign}
+        />
       </main>
     </div>
   )
