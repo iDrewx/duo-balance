@@ -12,7 +12,7 @@ interface GastoFormProps {
 export default function GastoForm({ quien, onAgregar }: GastoFormProps) {
   const [monto, setMonto] = useState('')
   const [descripcion, setDescripcion] = useState('')
-  const [tipo, setTipo] = useState<GastoTipo>('propio')
+  const [tipo, setTipo] = useState<GastoTipo>('compartido')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -21,7 +21,7 @@ export default function GastoForm({ quien, onAgregar }: GastoFormProps) {
     onAgregar(Number(monto), descripcion, tipo)
     setMonto('')
     setDescripcion('')
-    setTipo('propio')
+setTipo('compartido')
   }
 
   return (
@@ -104,19 +104,6 @@ export default function GastoForm({ quien, onAgregar }: GastoFormProps) {
           <div className="grid grid-cols-2 gap-4">
             <button
               type="button"
-              onClick={() => setTipo('propio')}
-              className="px-6 py-4 font-medium transition-all"
-              style={{ 
-                background: tipo === 'propio' ? 'var(--on-surface)' : 'var(--surface-container-low)',
-                color: tipo === 'propio' ? 'var(--surface)' : 'var(--on-surface-variant)',
-                borderRadius: '9999px',
-                fontFamily: 'Inter, sans-serif'
-              }}
-            >
-              Propio
-            </button>
-            <button
-              type="button"
               onClick={() => setTipo('compartido')}
               className="px-6 py-4 font-medium transition-all"
               style={{ 
@@ -130,6 +117,19 @@ export default function GastoForm({ quien, onAgregar }: GastoFormProps) {
               }}
             >
               Compartido
+            </button>
+            <button
+              type="button"
+              onClick={() => setTipo('propio')}
+              className="px-6 py-4 font-medium transition-all"
+              style={{ 
+                background: tipo === 'propio' ? 'var(--on-surface)' : 'var(--surface-container-low)',
+                color: tipo === 'propio' ? 'var(--surface)' : 'var(--on-surface-variant)',
+                borderRadius: '9999px',
+                fontFamily: 'Inter, sans-serif'
+              }}
+            >
+              Propio
             </button>
           </div>
         </div>
