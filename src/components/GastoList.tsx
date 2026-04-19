@@ -35,6 +35,8 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
   const [editingGasto, setEditingGasto] = useState<{ show: boolean; gasto: Gasto | null }>({ show: false, gasto: null })
   const [editForm, setEditForm] = useState({ monto: '', descripcion: '', tipo: 'propio' as GastoTipo })
   const [newlyAdded, setNewlyAdded] = useState<Set<string>>(new Set())
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 })
 
   const avatarEl = settings?.avatar_el || '👨'
   const avatarElla = settings?.avatar_ella || '👩'
@@ -104,6 +106,25 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
     setEditingGasto({ show: false, gasto: null })
   }
 
+  const handleMenuClick = (gastoId: string, event: React.MouseEvent) => {
+    const rect = (event.target as HTMLElement).getBoundingClientRect()
+    setMenuPosition({ top: rect.bottom + 8, left: rect.right - 120 })
+    setOpenMenuId(gastoId)
+  }
+
+  const closeMenu = () => {
+    setOpenMenuId(null)
+  }
+
+  // Cerrar menú al hacer click fuera
+  useEffect(() => {
+    const handleClickOutside = () => closeMenu()
+    if (openMenuId) {
+      document.addEventListener('click', handleClickOutside)
+      return () => document.removeEventListener('click', handleClickOutside)
+    }
+  }, [openMenuId])
+
   if (gastos.length === 0) {
     return (
       <div 
@@ -167,6 +188,10 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
               animationDelay={index * 0.05}
               onDeleteClick={() => handleDeleteClick(gasto.id)}
               onEditClick={() => handleEditClick(gasto)}
+              isMenuOpen={openMenuId === gasto.id}
+              onMenuClick={(e) => handleMenuClick(gasto.id, e)}
+              menuPosition={openMenuId === gasto.id ? menuPosition : undefined}
+              onCloseMenu={closeMenu}
             />
           ))}
         </div>
@@ -384,6 +409,10 @@ function GastoItem({
   animationDelay,
   onDeleteClick,
   onEditClick,
+  isMenuOpen,
+  onMenuClick,
+  menuPosition,
+  onCloseMenu,
 }: {
   gasto: Gasto
   avatarEl: string
@@ -394,6 +423,10 @@ function GastoItem({
   animationDelay: number
   onDeleteClick: () => void
   onEditClick: () => void
+  isMenuOpen?: boolean
+  onMenuClick?: (e: React.MouseEvent) => void
+  menuPosition?: { top: number; left: number }
+  onCloseMenu?: () => void
 }) {
   return (
     <div 
@@ -493,7 +526,7 @@ function GastoItem({
         </div>
       </div>
 
-      <div className="flex items-center gap-3 flex-shrink-0">
+      <div className="flex items-center gap-2 flex-shrink-0">
         <span
           className="font-bold text-lg"
           style={{ color: 'var(--on-surface)', fontFamily: 'Manrope, sans-serif' }}
@@ -502,40 +535,56 @@ function GastoItem({
         </span>
         
         <button
-          onClick={onEditClick}
-          className="p-2 rounded-full transition-all hover:scale-110 active:scale-95"
-          style={{ 
-            background: 'transparent',
-            color: 'var(--primary)',
-          }}
-          aria-label="Editar gasto"
+          onClick={onMenuClick}
+          className="p-2 rounded-full transition-all hover:bg-[var(--surface-container-low)]"
+          style={{ color: 'var(--on-surface-variant)' }}
+          aria-label="Más opciones"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            <circle cx="12" cy="6" r="1.5" fill="currentColor"/>
+            <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+            <circle cx="12" cy="18" r="1.5" fill="currentColor"/>
           </svg>
         </button>
+      </div>
 
-        <button
-          onClick={onDeleteClick}
-          disabled={isDeleting}
-          className="p-2 rounded-full transition-all hover:scale-110 active:scale-95"
+      {/* Dropdown Menu */}
+      {isMenuOpen && menuPosition && (
+        <div 
+          className="fixed z-50 min-w-[140px] py-2"
           style={{ 
-            background: 'transparent',
-            color: 'var(--error)',
+            top: menuPosition.top, 
+            left: menuPosition.left,
+            background: 'var(--surface-container-high)',
+            borderRadius: '12px',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.15)'
           }}
-          aria-label="Eliminar gasto"
+          onClick={(e) => e.stopPropagation()}
         >
-          {isDeleting ? (
-            <span className="w-5 h-5 border-2 border-error border-t-transparent rounded-full animate-spin inline-block" />
-          ) : (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <button
+            onClick={() => { onEditClick(); onCloseMenu?.() }}
+            className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-[var(--surface-container-low)] transition-colors"
+            style={{ color: 'var(--on-surface)', fontFamily: 'Inter, sans-serif' }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ color: 'var(--primary)' }}>
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            Editar
+          </button>
+          <button
+            onClick={() => { onDeleteClick(); onCloseMenu?.() }}
+            className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-[var(--surface-container-low)] transition-colors"
+            style={{ color: 'var(--error)', fontFamily: 'Inter, sans-serif' }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
               <path d="M19 7L18.1327 19.1425C18.0573 20.8857 16.8029 22.2435 15.0643 22.1052L8.9133 21.0193C7.14189 20.8783 5.60101 19.3292 5.49236 17.5545L5.15894 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               <path d="M10 17V13M14 17V13M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M2 7H22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
             </svg>
-          )}
-        </button>
-      </div>
+            Eliminar
+          </button>
+        </div>
+      )}
     </div>
   )
 }
