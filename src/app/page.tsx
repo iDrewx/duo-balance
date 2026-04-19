@@ -295,7 +295,9 @@ export default function Home() {
               }}
             >
               <span className="hidden sm:inline">Ajustes</span>
-              <span className="sm:hidden">⚙️</span>
+              <svg className="sm:hidden w-4 h-4" viewBox="0 0 24 24" fill="none">
+                <path d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.9c.04-.32.07-.64.07-.97 0-.33-.03-.66-.07-1l2.11-1.63a.5.5 0 0 0 .12-.64l-2-3.46a.5.5 0 0 0-.6-.22l-2.48 1a7.23 7.23 0 0 0-1.72-.28l-.38-2.14A.5.5 0 0 0 14.28 2H10a.5.5 0 0 0-.5.42l-.38 2.14c-.6.13-1.15.2-1.72.28l-2.48-1a.5.5 0 0 0-.6.22l-2 3.46a.5.5 0 0 0 .12.64l2.11 1.63c-.04.32-.07.65-.07.97s.03.65.07.97l-2.11 1.63a.5.5 0 0 0-.12.64l2 3.46a.5.5 0 0 0 .6.22l2.48-1c.57.08 1.12.15 1.72.28l.38 2.14c.04.18.22.42.5.42h4.28a.5.5 0 0 0 .5-.42l.38-2.14c.6-.13 1.15-.2 1.72-.28l2.48 1a.5.5 0 0 0 .6-.22l2-3.46a.5.5 0 0 0-.12-.64l-2.11-1.63z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
             </button>
             {!assignedProfile && (
               <button
@@ -307,8 +309,10 @@ export default function Home() {
                   fontFamily: 'Inter, sans-serif'
                 }}
               >
-                <span className="hidden sm:inline">Cambiar</span>
-                <span className="sm:hidden">↔️</span>
+<span className="hidden sm:inline">Cambiar</span>
+              <svg className="sm:hidden w-4 h-4" viewBox="0 0 24 24" fill="none">
+                <path d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L21 16M17 20L13 16M3 14h13c1.1 0 2 .9 2 2v0c0-1.1-.9-2-2-2h-1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
               </button>
             )}
             <button
@@ -321,7 +325,10 @@ export default function Home() {
               }}
             >
               <span className="hidden sm:inline">Limpiar</span>
-              <span className="sm:hidden">🗑️</span>
+              <svg className="sm:hidden w-4 h-4" viewBox="0 0 24 24" fill="none">
+                <path d="M19 7L18.1327 19.1425C18.0573 20.8857 16.8029 22.2435 15.0643 22.1052L8.9133 21.0193C7.14189 20.8783 5.60101 19.3292 5.49236 17.5545L5.15894 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M10 17V13M14 17V13M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M2 7H22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
             </button>
             <button
               onClick={() => signOut()}
@@ -333,7 +340,9 @@ export default function Home() {
               }}
             >
               <span className="hidden sm:inline">Cerrar</span>
-              <span className="sm:hidden">🚪</span>
+              <svg className="sm:hidden w-4 h-4" viewBox="0 0 24 24" fill="none">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 16v-6m0-6V5m0 0l7 7m-7-7l-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
             </button>
           </div>
         </div>
