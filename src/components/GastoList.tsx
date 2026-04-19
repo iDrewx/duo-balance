@@ -180,7 +180,7 @@ function SwipeableGasto({
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
         className="px-6 py-4 flex items-center justify-between cursor-grab active:cursor-grabbing bg-[var(--surface-container-lowest)]"
-        style={{ borderBottom: '1px solid var(--surface-container-low)' }}
+        style={{ x, borderBottom: '1px solid var(--surface-container-low)' }}
       >
         <div className="flex items-center gap-4">
           {/* Avatar del usuario */}
