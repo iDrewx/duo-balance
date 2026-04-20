@@ -12,7 +12,8 @@ import { generateRandomSeeds, getAvatarUrl } from '@/lib/dicebear'
 export default function SettingsPage() {
   const router = useRouter()
   const { user: authUser, signOut } = useAuth()
-  const { isDark, toggleTheme } = useTheme()
+  const { theme, setTheme, isDark } = useTheme()
+  const [showThemeDropdown, setShowThemeDropdown] = useState(false)
   const { settings, isLoading: settingsLoading, updateSettings } = useUserSettings()
   
   const [selectedUser, setSelectedUser] = useState<UserRole>('el')
@@ -152,44 +153,99 @@ export default function SettingsPage() {
           <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--on-surface)', fontFamily: 'Manrope, sans-serif' }}>
             Apariencia
           </h2>
-          <button
-            onClick={toggleTheme}
-            className="w-full flex items-center justify-between px-6 py-4 rounded-xl transition-all"
-            style={{ 
-              background: 'var(--surface-container-low)',
-              color: 'var(--on-surface)'
-            }}
-          >
-            <div className="flex items-center gap-4">
-              {isDark ? (
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                </svg>
-              ) : (
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                  <circle cx="12" cy="12" r="5"/>
-                  <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-                </svg>
-              )}
-              <span style={{ fontFamily: 'Inter, sans-serif' }}>
-                {isDark ? 'Modo Oscuro' : 'Modo Claro'}
-              </span>
-            </div>
-            <div 
-              className="w-14 h-8 rounded-full p-1 transition-colors"
+          
+          {/* Dropdown selector de tema */}
+          <div className="relative">
+            <button
+              onClick={() => setShowThemeDropdown(!showThemeDropdown)}
+              className="w-full flex items-center justify-between px-6 py-4 rounded-xl transition-all"
               style={{ 
-                background: isDark ? 'var(--primary)' : '#ccc3d8'
+                background: 'var(--surface-container-low)',
+                color: 'var(--on-surface)'
               }}
             >
+              <div className="flex items-center gap-4">
+                {theme === 'dark' ? (
+                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                  </svg>
+                ) : theme === 'light' ? (
+                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="5"/>
+                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                  </svg>
+                ) : (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                )}
+                <span style={{ fontFamily: 'Inter, sans-serif' }}>
+                  {theme === 'dark' ? 'Modo Oscuro' : theme === 'light' ? 'Modo Claro' : 'Sistema'}
+                </span>
+              </div>
+              <svg 
+                className="w-5 h-5 transition-transform" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+                style={{ transform: showThemeDropdown ? 'rotate(180deg)' : 'rotate(0)' }}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {/* Dropdown menu */}
+            {showThemeDropdown && (
               <div 
-                className="w-6 h-6 rounded-full transition-transform"
+                className="absolute top-full left-0 right-0 mt-2 py-2 rounded-xl z-10 overflow-hidden"
                 style={{ 
-                  background: '#fff',
-                  transform: isDark ? 'translateX(24px)' : 'translateX(0)'
+                  background: 'var(--surface-container-lowest)',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.15)'
                 }}
-              />
-            </div>
-          </button>
+              >
+                <button
+                  onClick={() => { setTheme('light'); setShowThemeDropdown(false) }}
+                  className="w-full flex items-center gap-3 px-6 py-3 transition-all"
+                  style={{ 
+                    background: theme === 'light' ? 'var(--primary-container)' : 'transparent',
+                    color: theme === 'light' ? 'var(--primary)' : 'var(--on-surface)'
+                  }}
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="5"/>
+                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                  </svg>
+                  <span style={{ fontFamily: 'Inter, sans-serif' }}>Claro</span>
+                </button>
+                <button
+                  onClick={() => { setTheme('dark'); setShowThemeDropdown(false) }}
+                  className="w-full flex items-center gap-3 px-6 py-3 transition-all"
+                  style={{ 
+                    background: theme === 'dark' ? 'var(--primary-container)' : 'transparent',
+                    color: theme === 'dark' ? 'var(--primary)' : 'var(--on-surface)'
+                  }}
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                  </svg>
+                  <span style={{ fontFamily: 'Inter, sans-serif' }}>Oscuro</span>
+                </button>
+                <button
+                  onClick={() => { setTheme('system'); setShowThemeDropdown(false) }}
+                  className="w-full flex items-center gap-3 px-6 py-3 transition-all"
+                  style={{ 
+                    background: theme === 'system' ? 'var(--primary-container)' : 'transparent',
+                    color: theme === 'system' ? 'var(--primary)' : 'var(--on-surface)'
+                  }}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <span style={{ fontFamily: 'Inter, sans-serif' }}>Sistema</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Asignar perfil al usuario actual */}
