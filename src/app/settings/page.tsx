@@ -468,7 +468,7 @@ export default function SettingsPage() {
         {saveSuccess !== null && (
           <div 
             className="fixed inset-0 flex items-center justify-center z-50"
-            style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+            style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
             onClick={() => setSaveSuccess(null)}
           >
             <div 
