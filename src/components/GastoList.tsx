@@ -138,7 +138,8 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
   }
 
   const handleMenuClick = (gastoId: string, event: React.MouseEvent) => {
-    const rect = (event.target as HTMLElement).getBoundingClientRect()
+    event.stopPropagation()
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
     setMenuPosition({ top: rect.bottom + 8, left: rect.right - 120 })
     setOpenMenuId(gastoId)
   }
@@ -509,14 +510,14 @@ function GastoItem({
     onSwiped: () => {
       setSwipeOffset(0)
     },
-    delta: { left: 120, right: 120 },
+    delta: { left: 50, right: 50 },
     trackTouch: true,
     trackMouse: false,
   }) : {}
 
-  const isSwipeRevealed = Math.abs(swipeOffset) > 40
-  const showDeleteReveal = swipeOffset < -40
-  const showEditReveal = swipeOffset > 40
+  const isSwipeRevealed = Math.abs(swipeOffset) > 15
+  const showDeleteReveal = swipeOffset < -15
+  const showEditReveal = swipeOffset > 15
 
   return (
     <div 
@@ -682,7 +683,7 @@ function GastoItem({
           {/* Solo mostrar botón de menú en desktop */}
           {!isMobile && (
             <button
-              onClick={onMenuClick}
+              onClick={(e) => { e.stopPropagation(); onMenuClick?.(e) }}
               className="p-2 rounded-full transition-all hover:bg-[var(--surface-container-low)]"
               style={{ color: 'var(--on-surface-variant)' }}
               aria-label="Más opciones"
