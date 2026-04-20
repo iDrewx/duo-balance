@@ -606,8 +606,8 @@ function GastoItem({
         </div>
       </div>
 
-      {/* Botón de menú (fuera del swipe para desktop) */}
-      {isMobile !== true && (
+      {/* Botón de menú (fuera del swipe) */}
+      {(isMobile === false || isMobile === undefined) && (
         <button
           onClick={(e) => { e.stopPropagation(); onMenuClick?.(e) }}
           className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full transition-all hover:bg-[var(--surface-container-low)]"
@@ -627,10 +627,10 @@ function GastoItem({
         {...handlers}
         className="px-6 py-4 flex items-center justify-between border-b transition-all duration-300 cursor-grab active:cursor-grabbing"
         style={{ 
-          borderColor: 'var(--surface-container-low)',
+          borderColor: showDeleteReveal ? 'var(--error)' : showEditReveal ? 'var(--primary)' : 'var(--surface-container-low)',
           background: 'var(--surface-container-lowest)',
           transform: `translateX(${swipeOffset}px)`,
-          transition: swipeOffset !== 0 ? 'none' : 'transform 0.3s ease',
+          transition: swipeOffset !== 0 ? 'none' : 'transform 0.3s ease, border-color 0.2s ease',
         }}
       >
         <div className="flex items-center gap-4 flex-1 min-w-0">
