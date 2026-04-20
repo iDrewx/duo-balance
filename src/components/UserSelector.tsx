@@ -93,14 +93,18 @@ export default function UserSelector({ onSelect }: UserSelectorProps) {
             }}
           >
             {/* Avatar */}
-            <img
-              src={isEl ? getAvatarUrl(avatar_el_seed) : getAvatarUrl(avatar_ella_seed)}
-              alt="Avatar"
-              className="w-24 h-24 rounded-3xl"
+            <div 
+              className="w-24 h-24 rounded-3xl flex items-center justify-center overflow-hidden"
               style={{ 
                 background: isEl ? 'var(--secondary-container)' : 'var(--tertiary-container)'
               }}
-            />
+            >
+              <img
+                src={isEl ? getAvatarUrl(avatar_el_seed) : getAvatarUrl(avatar_ella_seed)}
+                alt="Avatar"
+                className="w-20 h-20"
+              />
+            </div>
             <div className="text-center">
               <span 
                 className="block text-xl font-semibold"
@@ -176,41 +180,45 @@ export default function UserSelector({ onSelect }: UserSelectorProps) {
           Seleccionar perfil
         </h2>
         
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 gap-3 sm:gap-6">
           {/* El */}
           <button
             onClick={() => handleSelect('el')}
-            className="flex flex-col items-center gap-5 p-8 transition-all group"
+            className="flex flex-col items-center gap-3 sm:gap-5 p-4 sm:p-8 transition-all group"
             style={{ 
               background: 'var(--surface-container-low)',
               borderRadius: '24px'
             }}
           >
             {/* Avatar */}
-            <img
-              src={getAvatarUrl(avatar_el_seed)}
-              alt="Avatar"
-              className="w-24 h-24 rounded-3xl"
+            <div 
+              className="w-16 h-16 sm:w-24 sm:h-24 rounded-2xl sm:rounded-3xl flex items-center justify-center overflow-hidden"
               style={{ 
                 background: 'var(--secondary-container)'
               }}
-            />
+            >
+              <img
+                src={getAvatarUrl(avatar_el_seed)}
+                alt="Avatar"
+                className="w-12 h-12 sm:w-20 sm:h-20"
+              />
+            </div>
             <div className="text-center">
               <span 
-                className="block text-xl font-semibold"
+                className="block text-base sm:text-xl font-semibold"
                 style={{ color: 'var(--secondary)', fontFamily: 'Manrope, sans-serif' }}
               >
                 {nombre_el}
               </span>
               <span 
-                className="text-sm"
+                className="text-xs sm:text-sm"
                 style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }}
               >
                 Mi perfil
               </span>
             </div>
             <span 
-              className="text-sm font-medium px-6 py-3 rounded-full w-full text-center transition-all"
+              className="text-xs sm:text-sm font-medium px-4 sm:px-6 py-2 sm:py-3 rounded-full w-full text-center transition-all"
               style={{ 
                 background: 'var(--secondary)',
                 color: '#ffffff',
@@ -224,37 +232,41 @@ export default function UserSelector({ onSelect }: UserSelectorProps) {
           {/* Ella */}
           <button
             onClick={() => handleSelect('ella')}
-            className="flex flex-col items-center gap-5 p-8 transition-all group"
+            className="flex flex-col items-center gap-3 sm:gap-5 p-4 sm:p-8 transition-all group"
             style={{ 
               background: 'var(--surface-container-low)',
               borderRadius: '24px'
             }}
           >
             {/* Avatar */}
-            <img
-              src={getAvatarUrl(avatar_ella_seed)}
-              alt="Avatar"
-              className="w-24 h-24 rounded-3xl"
+            <div 
+              className="w-16 h-16 sm:w-24 sm:h-24 rounded-2xl sm:rounded-3xl flex items-center justify-center overflow-hidden"
               style={{ 
                 background: 'var(--tertiary-container)'
               }}
-            />
+            >
+              <img
+                src={getAvatarUrl(avatar_ella_seed)}
+                alt="Avatar"
+                className="w-12 h-12 sm:w-20 sm:h-20"
+              />
+            </div>
             <div className="text-center">
               <span 
-                className="block text-xl font-semibold"
+                className="block text-base sm:text-xl font-semibold"
                 style={{ color: 'var(--tertiary)', fontFamily: 'Manrope, sans-serif' }}
               >
                 {nombre_ella}
               </span>
               <span 
-                className="text-sm"
+                className="text-xs sm:text-sm"
                 style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }}
               >
                 Mi perfil
               </span>
             </div>
             <span 
-              className="text-sm font-medium px-6 py-3 rounded-full w-full text-center transition-all"
+              className="text-xs sm:text-sm font-medium px-4 sm:px-6 py-2 sm:py-3 rounded-full w-full text-center transition-all"
               style={{ 
                 background: 'var(--tertiary)',
                 color: '#ffffff',
