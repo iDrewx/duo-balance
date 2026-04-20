@@ -505,7 +505,7 @@ function GastoItem({
       <div className="flex items-center gap-4 flex-1 min-w-0">
         {/* Avatar del usuario */}
         <div
-          className="w-10 h-10 rounded-full flex items-center justify-center text-xl flex-shrink-0"
+          className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0 overflow-hidden"
 style={{
               background:
                 gasto.quien === 'el'
