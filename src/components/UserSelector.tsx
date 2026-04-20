@@ -272,7 +272,7 @@ export default function UserSelector({ onSelect }: UserSelectorProps) {
 
       {/* Footer */}
       <p className="mt-10 text-sm" style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }}>
-        © 2024 DuoBalance
+        © 2026 DuoBalance
       </p>
     </div>
   )

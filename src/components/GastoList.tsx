@@ -150,16 +150,21 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
 
   // Cerrar menú al hacer click fuera o al scrollear
   useEffect(() => {
+    if (!openMenuId) return
+
     const handleClickOutside = () => closeMenu()
     const handleScroll = () => closeMenu()
-    
-    if (openMenuId) {
+
+    // Delay para evitar que el mismo click que abre el menú lo cierre
+    const timeoutId = setTimeout(() => {
       document.addEventListener('click', handleClickOutside)
       document.addEventListener('scroll', handleScroll, { passive: true })
-      return () => {
-        document.removeEventListener('click', handleClickOutside)
-        document.removeEventListener('scroll', handleScroll)
-      }
+    }, 100)
+
+    return () => {
+      clearTimeout(timeoutId)
+      document.removeEventListener('click', handleClickOutside)
+      document.removeEventListener('scroll', handleScroll)
     }
   }, [openMenuId])
 
