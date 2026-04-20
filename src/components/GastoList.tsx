@@ -41,6 +41,11 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
 
   const avatarElSeed = settings?.avatar_el_seed || 'default-el'
   const avatarEllaSeed = settings?.avatar_ella_seed || 'default-ella'
+  
+  // Limitar gastos visibles (10 por defecto)
+  const [visibleCount, setVisibleCount] = useState(10)
+  const visibleGastos = gastos.slice(0, visibleCount)
+  const hasMore = visibleCount < gastos.length
 
   // Track newly added expenses for animation
   useEffect(() => {
@@ -183,7 +188,7 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
         </div>
         
         <div>
-          {sortedGastos.map((gasto, index) => (
+          {visibleGastos.map((gasto, index) => (
             <GastoItem
               key={gasto.id}
               gasto={gasto}
@@ -202,6 +207,26 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
             />
           ))}
         </div>
+        
+        {/* Botón mostrar más */}
+        {hasMore && (
+          <div className="p-4 border-t" style={{ borderColor: 'var(--outline)' }}>
+            <button
+              onClick={() => setVisibleCount(prev => prev + 10)}
+              className="w-full py-3 text-sm font-medium rounded-xl transition-all flex items-center justify-center gap-2"
+              style={{ 
+                background: 'var(--surface-container-low)',
+                color: 'var(--primary)',
+                border: '1px solid var(--outline)'
+              }}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+              Mostrar más ({gastos.length - visibleCount} más)
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Custom Confirm Modal */}

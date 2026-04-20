@@ -20,6 +20,7 @@ export default function SettingsPage() {
   const [avatarSeed, setAvatarSeed] = useState('')
   const [availableSeeds, setAvailableSeeds] = useState<string[]>([])
   const [isSaving, setIsSaving] = useState(false)
+  const [saveSuccess, setSaveSuccess] = useState<boolean | null>(null)
   const [confirmAssign, setConfirmAssign] = useState<{ show: boolean; profile: UserRole | null }>({ show: false, profile: null })
 
   const handleAssignButtonClick = (profile: UserRole | null) => {
@@ -87,11 +88,11 @@ export default function SettingsPage() {
     
     const success = await updateSettings(updates)
     setIsSaving(false)
+    setSaveSuccess(success)
     
+    // Ocultar mensaje después de 2 segundos
     if (success) {
-      alert('¡Cambios guardados!')
-    } else {
-      alert('Error al guardar. Intenta de nuevo.')
+      setTimeout(() => setSaveSuccess(null), 2000)
     }
   }
 
@@ -160,7 +161,16 @@ export default function SettingsPage() {
             }}
           >
             <div className="flex items-center gap-4">
-              <span className="text-2xl">{isDark ? '🌙' : '☀️'}</span>
+              {isDark ? (
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="5"/>
+                  <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                </svg>
+              )}
               <span style={{ fontFamily: 'Inter, sans-serif' }}>
                 {isDark ? 'Modo Oscuro' : 'Modo Claro'}
               </span>
@@ -322,14 +332,17 @@ export default function SettingsPage() {
           {/* Botón regenerar */}
           <button
             onClick={handleRegenerateSeeds}
-            className="w-full py-2 mb-4 text-sm font-medium rounded-lg transition-all"
+            className="w-full py-2 mb-4 text-sm font-medium rounded-lg transition-all flex items-center justify-center gap-2"
             style={{ 
               background: 'var(--surface-container-low)',
               color: 'var(--on-surface)',
               border: '1px solid var(--outline)'
             }}
           >
-            🔄 Regenerar avatares
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Regenerar avatares
           </button>
 
           {/* Grid de avatares DiceBear */}
@@ -394,6 +407,63 @@ export default function SettingsPage() {
           onConfirm={confirmAssignAction}
           onCancel={cancelAssign}
         />
+
+        {/* Pantalla de éxito/error al guardar */}
+        {saveSuccess !== null && (
+          <div 
+            className="fixed inset-0 flex items-center justify-center z-50"
+            style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+            onClick={() => setSaveSuccess(null)}
+          >
+            <div 
+              className="p-8 rounded-3xl text-center max-w-sm mx-4"
+              style={{ background: 'var(--surface-container-high)' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {saveSuccess ? (
+                <>
+                  <div 
+                    className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+                    style={{ background: 'var(--secondary-container)' }}
+                  >
+                    <svg className="w-8 h-8" fill="none" stroke="var(--secondary)" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <h3 
+                    className="text-xl font-semibold mb-2"
+                    style={{ color: 'var(--on-surface)', fontFamily: 'Manrope, sans-serif' }}
+                  >
+                    ¡Cambios guardados!
+                  </h3>
+                  <p style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }}>
+                    Tu configuración ha sido actualizada.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div 
+                    className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+                    style={{ background: 'var(--error-container)' }}
+                  >
+                    <svg className="w-8 h-8" fill="none" stroke="var(--error)" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </div>
+                  <h3 
+                    className="text-xl font-semibold mb-2"
+                    style={{ color: 'var(--on-surface)', fontFamily: 'Manrope, sans-serif' }}
+                  >
+                    Error al guardar
+                  </h3>
+                  <p style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }}>
+                    Intenta de nuevo.
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   )
