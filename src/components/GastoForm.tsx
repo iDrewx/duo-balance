@@ -144,8 +144,8 @@ setTipo('compartido')
             boxShadow: '0 8px 24px rgba(99, 14, 212, 0.3)'
           }}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" fill="white"/>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 5v14M5 12h14"/>
           </svg>
           Agregar Gasto
         </button>

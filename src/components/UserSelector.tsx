@@ -95,9 +95,6 @@ export default function UserSelector({ onSelect }: UserSelectorProps) {
             {/* Avatar */}
             <div 
               className="w-24 h-24 rounded-3xl flex items-center justify-center overflow-hidden"
-              style={{ 
-                background: isEl ? 'var(--secondary-container)' : 'var(--tertiary-container)'
-              }}
             >
               <img
                 src={isEl ? getAvatarUrl(avatar_el_seed) : getAvatarUrl(avatar_ella_seed)}
@@ -193,9 +190,6 @@ export default function UserSelector({ onSelect }: UserSelectorProps) {
             {/* Avatar */}
             <div 
               className="w-16 h-16 sm:w-24 sm:h-24 rounded-2xl sm:rounded-3xl flex items-center justify-center overflow-hidden"
-              style={{ 
-                background: 'var(--secondary-container)'
-              }}
             >
               <img
                 src={getAvatarUrl(avatar_el_seed)}
@@ -241,9 +235,6 @@ export default function UserSelector({ onSelect }: UserSelectorProps) {
             {/* Avatar */}
             <div 
               className="w-16 h-16 sm:w-24 sm:h-24 rounded-2xl sm:rounded-3xl flex items-center justify-center overflow-hidden"
-              style={{ 
-                background: 'var(--tertiary-container)'
-              }}
             >
               <img
                 src={getAvatarUrl(avatar_ella_seed)}
