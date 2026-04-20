@@ -89,8 +89,8 @@ export function useProfileNames() {
   return {
     nombreEl: settings?.nombre_el || 'André',
     nombreElla: settings?.nombre_ella || 'Diana',
-    avatarEl: settings?.avatar_el || '👨',
-    avatarElla: settings?.avatar_ella || '👩',
+    avatarElSeed: settings?.avatar_el_seed || 'default-el',
+    avatarEllaSeed: settings?.avatar_ella_seed || 'default-ella',
     assignedProfile: settings?.assigned_profile || null
   }
 }

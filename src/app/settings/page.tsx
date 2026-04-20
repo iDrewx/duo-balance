@@ -7,14 +7,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useTheme } from '@/context/ThemeContext'
 import { useUserSettings } from '@/context/UserSettingsContext'
 import { UserRole } from '@/types'
-
-const AVATARES = [
-  '👨', '👩', '🧑', '👨‍🦱', '👩‍🦱', '👨‍🦰', '👩‍🦰',
-  '🧔', '👴', '👵', '👸', '🤴', '🦸', '🦹',
-  '🧙', '🧚', '🧛', '🧜', '🧝', '🧞',
-  '😀', '😎', '🤓', '🧐', '😇', '🤗',
-  '🐱', '🐶', '🐼', '🦊', '🐻', '🐨',
-]
+import { generateRandomSeeds, getAvatarUrl } from '@/lib/dicebear'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -24,7 +17,8 @@ export default function SettingsPage() {
   
   const [selectedUser, setSelectedUser] = useState<UserRole>('el')
   const [nombre, setNombre] = useState('')
-  const [avatar, setAvatar] = useState('')
+  const [avatarSeed, setAvatarSeed] = useState('')
+  const [availableSeeds, setAvailableSeeds] = useState<string[]>([])
   const [isSaving, setIsSaving] = useState(false)
   const [confirmAssign, setConfirmAssign] = useState<{ show: boolean; profile: UserRole | null }>({ show: false, profile: null })
 
@@ -51,7 +45,9 @@ export default function SettingsPage() {
       
       setSelectedUser(perfilInicial as UserRole)
       setNombre(perfilInicial === 'el' ? settings.nombre_el : settings.nombre_ella)
-      setAvatar(perfilInicial === 'el' ? settings.avatar_el : settings.avatar_ella)
+      setAvatarSeed(perfilInicial === 'el' ? settings.avatar_el_seed : settings.avatar_ella_seed)
+      // Generar seeds disponibles
+      setAvailableSeeds(generateRandomSeeds(10))
     }
   }, [settings, settingsLoading])
 
@@ -67,13 +63,18 @@ export default function SettingsPage() {
     if (settings) {
       if (selectedUser === 'el') {
         setNombre(settings.nombre_el)
-        setAvatar(settings.avatar_el)
+        setAvatarSeed(settings.avatar_el_seed)
       } else {
         setNombre(settings.nombre_ella)
-        setAvatar(settings.avatar_ella)
+        setAvatarSeed(settings.avatar_ella_seed)
       }
     }
   }, [selectedUser, settings])
+
+  // Función para regenerar seeds
+  const handleRegenerateSeeds = () => {
+    setAvailableSeeds(generateRandomSeeds(10))
+  }
 
   const handleSave = async () => {
     if (!selectedUser || isSaving) return
@@ -81,8 +82,8 @@ export default function SettingsPage() {
     setIsSaving(true)
     
     const updates = selectedUser === 'el' 
-      ? { nombre_el: nombre, avatar_el: avatar }
-      : { nombre_ella: nombre, avatar_ella: avatar }
+      ? { nombre_el: nombre, avatar_el_seed: avatarSeed }
+      : { nombre_ella: nombre, avatar_ella_seed: avatarSeed }
     
     const success = await updateSettings(updates)
     setIsSaving(false)
@@ -307,30 +308,51 @@ export default function SettingsPage() {
           </h2>
           
           {/* Avatar actual grande */}
-          <div className="flex justify-center mb-6">
-            <div 
-              className="w-24 h-24 rounded-full flex items-center justify-center text-5xl"
+          <div className="flex justify-center mb-4">
+            <img
+              src={getAvatarUrl(avatarSeed)}
+              alt="Avatar actual"
+              className="w-24 h-24 rounded-full"
               style={{ 
                 background: selectedUser === 'el' ? 'var(--secondary-container)' : 'var(--tertiary-container)'
               }}
-            >
-              {avatar}
-            </div>
+            />
           </div>
 
-          {/* Grid de avatares */}
-          <div className="grid grid-cols-6 gap-3">
-            {AVATARES.map((a) => (
+          {/* Botón regenerar */}
+          <button
+            onClick={handleRegenerateSeeds}
+            className="w-full py-2 mb-4 text-sm font-medium rounded-lg transition-all"
+            style={{ 
+              background: 'var(--surface-container-low)',
+              color: 'var(--on-surface)',
+              border: '1px solid var(--outline)'
+            }}
+          >
+            🔄 Regenerar avatares
+          </button>
+
+          {/* Grid de avatares DiceBear */}
+          <div className="grid grid-cols-5 gap-2">
+            {availableSeeds.map((seed) => (
               <button
-                key={a}
-                onClick={() => setAvatar(a)}
-                className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl transition-all"
+                key={seed}
+                onClick={() => setAvatarSeed(seed)}
+                className="w-full aspect-square rounded-lg flex items-center justify-center transition-all overflow-hidden"
                 style={{ 
-                  background: avatar === a ? (selectedUser === 'el' ? 'var(--secondary-container)' : 'var(--tertiary-container)') : 'var(--surface-container-low)',
-                  border: avatar === a ? `2px solid ${selectedUser === 'el' ? 'var(--secondary)' : 'var(--tertiary)'}` : '2px solid transparent'
+                  background: avatarSeed === seed 
+                    ? (selectedUser === 'el' ? 'var(--secondary-container)' : 'var(--tertiary-container)') 
+                    : 'var(--surface-container-low)',
+                  border: avatarSeed === seed 
+                    ? `2px solid ${selectedUser === 'el' ? 'var(--secondary)' : 'var(--tertiary)'}` 
+                    : '2px solid transparent'
                 }}
               >
-                {a}
+                <img
+                  src={getAvatarUrl(seed)}
+                  alt="Avatar opción"
+                  className="w-10 h-10"
+                />
               </button>
             ))}
           </div>

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { Gasto, Resumen as ResumenType } from '@/types'
 import { useTheme } from '@/context/ThemeContext'
 import { useUserSettings } from '@/context/UserSettingsContext'
+import { getAvatarUrl } from '@/lib/dicebear'
 
 interface ResumenProps {
   gastos: Gasto[]
@@ -60,8 +61,8 @@ export default function Resumen({ gastos, currentUser }: ResumenProps) {
 
   const nombreEl = settings?.nombre_el || 'André'
   const nombreElla = settings?.nombre_ella || 'Diana'
-  const avatarEl = settings?.avatar_el || '👨'
-  const avatarElla = settings?.avatar_ella || '👩'
+  const avatarElSeed = settings?.avatar_el_seed || 'default-el'
+  const avatarEllaSeed = settings?.avatar_ella_seed || 'default-ella'
 
   return (
     <div 
@@ -133,12 +134,12 @@ export default function Resumen({ gastos, currentUser }: ResumenProps) {
           }}
         >
           <div className="flex items-center gap-4">
-            <div 
-              className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+            <img 
+              src={getAvatarUrl(avatarElSeed)}
+              alt="avatar"
+              className="w-12 h-12 rounded-xl"
               style={{ background: 'var(--secondary-container)' }}
-            >
-              {avatarEl}
-            </div>
+            />
             <div>
               <span className="font-semibold block" style={{ color: 'var(--secondary)', fontFamily: 'Manrope, sans-serif' }}>
                 {nombreEl}
@@ -169,12 +170,12 @@ export default function Resumen({ gastos, currentUser }: ResumenProps) {
           }}
         >
           <div className="flex items-center gap-4">
-            <div 
-              className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+            <img 
+              src={getAvatarUrl(avatarEllaSeed)}
+              alt="avatar"
+              className="w-12 h-12 rounded-xl"
               style={{ background: 'var(--tertiary-container)' }}
-            >
-              {avatarElla}
-            </div>
+            />
             <div>
               <span className="font-semibold block" style={{ color: 'var(--tertiary)', fontFamily: 'Manrope, sans-serif' }}>
                 {nombreElla}

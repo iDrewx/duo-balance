@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { UserRole } from '@/types'
 import { useUserSettings } from '@/context/UserSettingsContext'
+import { getAvatarUrl } from '@/lib/dicebear'
 
 // Storage key para último perfil usado
 const PROFILE_KEY = 'duobalance-last-profile'
@@ -39,7 +40,7 @@ export default function UserSelector({ onSelect }: UserSelectorProps) {
     )
   }
 
-  const { nombre_el, nombre_ella, avatar_el, avatar_ella, assigned_profile } = settings
+  const { nombre_el, nombre_ella, avatar_el_seed, avatar_ella_seed, assigned_profile } = settings
 
   // Si hay un perfil asignado, mostrar solo ese perfil
   if (assigned_profile) {
@@ -92,14 +93,14 @@ export default function UserSelector({ onSelect }: UserSelectorProps) {
             }}
           >
             {/* Avatar */}
-            <div 
-              className="w-24 h-24 rounded-3xl flex items-center justify-center text-5xl"
+            <img
+              src={isEl ? getAvatarUrl(avatar_el_seed) : getAvatarUrl(avatar_ella_seed)}
+              alt="Avatar"
+              className="w-24 h-24 rounded-3xl"
               style={{ 
                 background: isEl ? 'var(--secondary-container)' : 'var(--tertiary-container)'
               }}
-            >
-              {isEl ? avatar_el : avatar_ella}
-            </div>
+            />
             <div className="text-center">
               <span 
                 className="block text-xl font-semibold"
@@ -186,14 +187,14 @@ export default function UserSelector({ onSelect }: UserSelectorProps) {
             }}
           >
             {/* Avatar */}
-            <div 
-              className="w-24 h-24 rounded-3xl flex items-center justify-center text-5xl"
+            <img
+              src={getAvatarUrl(avatar_el_seed)}
+              alt="Avatar"
+              className="w-24 h-24 rounded-3xl"
               style={{ 
                 background: 'var(--secondary-container)'
               }}
-            >
-              {avatar_el}
-            </div>
+            />
             <div className="text-center">
               <span 
                 className="block text-xl font-semibold"
@@ -230,14 +231,14 @@ export default function UserSelector({ onSelect }: UserSelectorProps) {
             }}
           >
             {/* Avatar */}
-            <div 
-              className="w-24 h-24 rounded-3xl flex items-center justify-center text-5xl"
+            <img
+              src={getAvatarUrl(avatar_ella_seed)}
+              alt="Avatar"
+              className="w-24 h-24 rounded-3xl"
               style={{ 
                 background: 'var(--tertiary-container)'
               }}
-            >
-              {avatar_ella}
-            </div>
+            />
             <div className="text-center">
               <span 
                 className="block text-xl font-semibold"

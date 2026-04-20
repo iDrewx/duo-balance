@@ -44,3 +44,7 @@ export interface Corte {
   gastos: Gasto[]
   resumen: Resumen
 }
+
+// DiceBear Avatar URLs
+export const DICE_BEAR_BASE_URL = 'https://api.dicebear.com/9.x/bottts-neutral/svg'
+export const DICE_BEAR_VERSION = '9.x'

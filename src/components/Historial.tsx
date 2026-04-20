@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { Gasto, Resumen as ResumenType } from '@/types'
 import { useTheme } from '@/context/ThemeContext'
 import { useUserSettings } from '@/context/UserSettingsContext'
+import { getAvatarUrl } from '@/lib/dicebear'
 
 interface HistorialProps {
   gastos: Gasto[]
@@ -92,8 +93,8 @@ export default function Historial({ gastos }: HistorialProps) {
   const { settings } = useUserSettings()
   const [corteExpandido, setCorteExpandido] = useState<string | null>(null)
   
-  const avatarEl = settings?.avatar_el || '👨'
-  const avatarElla = settings?.avatar_ella || '👩'
+  const avatarElSeed = settings?.avatar_el_seed || 'default-el'
+  const avatarEllaSeed = settings?.avatar_ella_seed || 'default-ella'
   
   const cortesAgrupados = useMemo(() => {
     const grupos: Record<string, Gasto[]> = {}
@@ -186,9 +187,11 @@ export default function Historial({ gastos }: HistorialProps) {
                       className="flex items-center justify-between py-2 px-3 bg-[var(--surface-container-lowest)] rounded-lg"
                     >
                       <div className="flex items-center gap-2">
-                        <span className="text-lg">
-                          {gasto.quien === 'el' ? avatarEl : avatarElla}
-                        </span>
+                        <img 
+                          src={gasto.quien === 'el' ? getAvatarUrl(avatarElSeed) : getAvatarUrl(avatarEllaSeed)}
+                          alt="avatar"
+                          className="w-6 h-6"
+                        />
                         <div>
                           <p className="text-sm font-medium" style={{ color: 'var(--on-surface)' }}>
                             {gasto.descripcion}

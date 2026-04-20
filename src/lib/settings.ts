@@ -7,6 +7,8 @@ export interface UserSettings {
   nombre_ella: string
   avatar_el: string
   avatar_ella: string
+  avatar_el_seed: string
+  avatar_ella_seed: string
   assigned_profile: UserRole | null
   theme: 'light' | 'dark'
 }
@@ -35,6 +37,8 @@ export async function getUserSettings(): Promise<UserSettings | null> {
     nombre_ella: data.nombre_ella || 'Diana',
     avatar_el: data.avatar_el || '👨',
     avatar_ella: data.avatar_ella || '👩',
+    avatar_el_seed: data.avatar_el_seed || `seed-${Date.now()}-el`,
+    avatar_ella_seed: data.avatar_ella_seed || `seed-${Date.now()}-ella`,
     assigned_profile: data.assigned_profile as UserRole | null,
     theme: (data.theme || 'light') as 'light' | 'dark'
   }
@@ -99,6 +103,8 @@ export const DEFAULT_SETTINGS: UserSettings = {
   nombre_ella: 'Diana',
   avatar_el: '👨',
   avatar_ella: '👩',
+  avatar_el_seed: 'default-el',
+  avatar_ella_seed: 'default-ella',
   assigned_profile: null,
   theme: 'light'
 }

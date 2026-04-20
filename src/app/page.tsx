@@ -13,6 +13,7 @@ import { useTheme } from '@/context/ThemeContext'
 import { useUserSettings } from '@/context/UserSettingsContext'
 import { Gasto, GastoTipo, UserRole } from '@/types'
 import { getSupabase } from '@/lib/supabase'
+import { getAvatarUrl } from '@/lib/dicebear'
 
 // Storage key for local fallback
 const STORAGE_KEY = 'gastos-compartidos-data'
@@ -239,12 +240,12 @@ export default function Home() {
   const getProfileData = (userRole: UserRole) => {
     if (!settings) {
       return userRole === 'el' 
-        ? { nombre: 'André', avatar: '👨' }
-        : { nombre: 'Diana', avatar: '👩' }
+        ? { nombre: 'André', avatarSeed: 'default-el' }
+        : { nombre: 'Diana', avatarSeed: 'default-ella' }
     }
     return userRole === 'el' 
-      ? { nombre: settings.nombre_el, avatar: settings.avatar_el }
-      : { nombre: settings.nombre_ella, avatar: settings.avatar_ella }
+      ? { nombre: settings.nombre_el, avatarSeed: settings.avatar_el_seed }
+      : { nombre: settings.nombre_ella, avatarSeed: settings.avatar_ella_seed }
   }
 
   const assignedProfile = settings?.assigned_profile
@@ -305,16 +306,16 @@ export default function Home() {
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* User Avatar */}
-            <div 
-              className="w-10 h-10 rounded-full flex items-center justify-center text-xl"
+            <img 
+              src={getAvatarUrl(profileData.avatarSeed)}
+              alt="Avatar"
+              className="w-10 h-10 rounded-full"
               style={{ 
                 background: user === 'el' 
                   ? 'var(--secondary-container)' 
                   : 'var(--tertiary-container)'
               }}
-            >
-              {profileData.avatar}
-            </div>
+            />
             <div>
               <h1 
                 className="text-lg font-bold"

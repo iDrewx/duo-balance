@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Gasto, GastoTipo } from '@/types'
 import { useTheme } from '@/context/ThemeContext'
 import { useUserSettings } from '@/context/UserSettingsContext'
+import { getAvatarUrl } from '@/lib/dicebear'
 
 interface GastoListProps {
   gastos: Gasto[]
@@ -38,8 +39,8 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 })
 
-  const avatarEl = settings?.avatar_el || '👨'
-  const avatarElla = settings?.avatar_ella || '👩'
+  const avatarElSeed = settings?.avatar_el_seed || 'default-el'
+  const avatarEllaSeed = settings?.avatar_ella_seed || 'default-ella'
 
   // Track newly added expenses for animation
   useEffect(() => {
@@ -186,8 +187,8 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
             <GastoItem
               key={gasto.id}
               gasto={gasto}
-              avatarEl={avatarEl}
-              avatarElla={avatarElla}
+              avatarElSeed={avatarElSeed}
+              avatarEllaSeed={avatarEllaSeed}
               isDark={isDark}
               isDeleting={deletingId === gasto.id}
               isNew={newlyAdded.has(gasto.id)}
@@ -407,8 +408,8 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
 // Componente individual de gasto con animaciones
 function GastoItem({
   gasto,
-  avatarEl,
-  avatarElla,
+  avatarElSeed,
+  avatarEllaSeed,
   isDark,
   isDeleting,
   isNew,
@@ -421,8 +422,8 @@ function GastoItem({
   onCloseMenu,
 }: {
   gasto: Gasto
-  avatarEl: string
-  avatarElla: string
+  avatarElSeed: string
+  avatarEllaSeed: string
   isDark: boolean
   isDeleting: boolean
   isNew: boolean
@@ -480,15 +481,19 @@ function GastoItem({
         {/* Avatar del usuario */}
         <div
           className="w-10 h-10 rounded-full flex items-center justify-center text-xl flex-shrink-0"
-          style={{
-            background:
-              gasto.quien === 'el'
-                ? 'var(--secondary-container)'
-                : 'var(--tertiary-container)',
-          }}
-        >
-          {gasto.quien === 'el' ? avatarEl : avatarElla}
-        </div>
+style={{
+              background:
+                gasto.quien === 'el'
+                  ? 'var(--secondary-container)'
+                  : 'var(--tertiary-container)',
+            }}
+          >
+          <img 
+            src={gasto.quien === 'el' ? getAvatarUrl(avatarElSeed) : getAvatarUrl(avatarEllaSeed)}
+            alt="Avatar"
+            className="w-full h-full object-cover"
+          />
+          </div>
         
         <div className="min-w-0 flex-1">
           <p
