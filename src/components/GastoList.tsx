@@ -622,7 +622,11 @@ function GastoItem({
         {/* Botón de menú (dentro del swipe, al final) */}
         {(isMobile === false || isMobile === undefined) && (
           <button
-            onClick={(e) => { e.stopPropagation(); e.preventDefault(); onMenuClick?.(e) }}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation()
+              onMenuClick?.(e)
+            }}
             className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full transition-all hover:bg-[var(--surface-container-low)]"
             style={{ color: 'var(--on-surface-variant)' }}
             aria-label="Más opciones"
