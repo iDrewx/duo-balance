@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Gasto, GastoTipo } from '@/types'
 import { useTheme } from '@/context/ThemeContext'
 import { useUserSettings } from '@/context/UserSettingsContext'
 import { getAvatarUrl } from '@/lib/dicebear'
+import { useSwipeable } from 'react-swipeable'
 
 interface GastoListProps {
   gastos: Gasto[]
@@ -42,10 +43,17 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
   const avatarElSeed = settings?.avatar_el_seed || 'default-el'
   const avatarEllaSeed = settings?.avatar_ella_seed || 'default-ella'
   
+  // Sort by created_at descending (last added first)
+  const sortedGastos = [...gastos].sort((a, b) => {
+    const dateA = a.created_at ? new Date(a.created_at).getTime() : new Date(a.fecha).getTime()
+    const dateB = b.created_at ? new Date(b.created_at).getTime() : new Date(b.fecha).getTime()
+    return dateB - dateA
+  })
+
   // Limitar gastos visibles (10 por defecto)
   const [visibleCount, setVisibleCount] = useState(10)
-  const visibleGastos = gastos.slice(0, visibleCount)
-  const hasMore = visibleCount < gastos.length
+  const visibleGastos = sortedGastos.slice(0, visibleCount)
+  const hasMore = visibleCount < sortedGastos.length
 
   // Track newly added expenses for animation
   useEffect(() => {
@@ -161,13 +169,6 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
     )
   }
 
-  // Sort by created_at descending (last added first)
-  const sortedGastos = [...gastos].sort((a, b) => {
-    const dateA = a.created_at ? new Date(a.created_at).getTime() : new Date(a.fecha).getTime()
-    const dateB = b.created_at ? new Date(b.created_at).getTime() : new Date(b.fecha).getTime()
-    return dateB - dateA
-  })
-
   return (
     <>
       <div 
@@ -225,7 +226,7 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
-              Mostrar más ({gastos.length - visibleCount} más)
+              Mostrar más ({sortedGastos.length - visibleCount} más)
             </button>
           </div>
         )}
@@ -432,7 +433,7 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
   )
 }
 
-// Componente individual de gasto con animaciones
+// Componente individual de gasto con animaciones y swipe
 function GastoItem({
   gasto,
   avatarElSeed,
@@ -462,17 +463,39 @@ function GastoItem({
   menuPosition?: { top: number; left: number }
   onCloseMenu?: () => void
 }) {
+  const [swipeOffset, setSwipeOffset] = useState(0)
+
+  const handlers = useSwipeable({
+    onSwiping: (event) => {
+      setSwipeOffset(event.deltaX)
+    },
+    onSwipedLeft: () => {
+      setSwipeOffset(0)
+      onDeleteClick()
+    },
+    onSwipedRight: () => {
+      setSwipeOffset(0)
+      onEditClick()
+    },
+    onSwiped: () => {
+      setSwipeOffset(0)
+    },
+    delta: { left: 80, right: 80 },
+    trackTouch: true,
+    trackMouse: false,
+  })
+
+  const isSwipeRevealed = Math.abs(swipeOffset) > 20
+  const showDeleteReveal = swipeOffset < -20
+  const showEditReveal = swipeOffset > 20
+
   return (
     <div 
-      className={`px-6 py-4 flex items-center justify-between border-b transition-all duration-300 ${
+      className={`relative overflow-hidden ${
         isNew ? 'animate-slide-in' : ''
       } ${isDeleting ? 'animate-slide-out opacity-0' : ''}`}
       style={{ 
-        borderColor: 'var(--surface-container-low)',
-        background: 'var(--surface-container-lowest)',
         animationDelay: `${animationDelay}s`,
-        ['--animate-slide-in' as string]: 'slideIn 0.4s ease-out forwards',
-        ['--animate-slide-out' as string]: 'slideOut 0.3s ease-in forwards',
       }}
     >
       <style jsx>{`
@@ -504,138 +527,194 @@ function GastoItem({
         }
       `}</style>
 
-      <div className="flex items-center gap-4 flex-1 min-w-0">
-        {/* Avatar del usuario */}
-        <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0 overflow-hidden"
-style={{
+      {/* Fondo revelar: Eliminar (swipe izquierda) */}
+      <div 
+        className="absolute inset-0 flex items-center justify-end pr-6"
+        style={{ 
+          background: isSwipeRevealed ? 'var(--error)' : 'transparent',
+          transition: 'background 0.2s ease',
+        }}
+      >
+        <div 
+          className={`flex items-center gap-2 transition-opacity duration-200 ${
+            showDeleteReveal ? 'opacity-100' : 'opacity-0'
+          }`}
+          style={{ color: 'white' }}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M19 7L18.1327 19.1425C18.0573 20.8857 16.8029 22.2435 15.0643 22.1052L8.9133 21.0193C7.14189 20.8783 5.60101 19.3292 5.49236 17.5545L5.15894 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            <path d="M10 17V13M14 17V13M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M2 7H22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+          <span className="font-medium text-sm">Eliminar</span>
+        </div>
+      </div>
+
+      {/* Fondo revelar: Editar (swipe derecha) */}
+      <div 
+        className="absolute inset-0 flex items-center justify-start pl-6"
+        style={{ 
+          background: isSwipeRevealed ? 'var(--primary)' : 'transparent',
+          transition: 'background 0.2s ease',
+        }}
+      >
+        <div 
+          className={`flex items-center gap-2 transition-opacity duration-200 ${
+            showEditReveal ? 'opacity-100' : 'opacity-0'
+          }`}
+          style={{ color: 'white' }}
+        >
+          <span className="font-medium text-sm">Editar</span>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+        </div>
+      </div>
+
+      {/* Contenido principal con swipe */}
+      <div 
+        {...handlers}
+        className="px-6 py-4 flex items-center justify-between border-b transition-all duration-300 cursor-grab active:cursor-grabbing"
+        style={{ 
+          borderColor: 'var(--surface-container-low)',
+          background: 'var(--surface-container-lowest)',
+          transform: `translateX(${swipeOffset}px)`,
+          transition: swipeOffset !== 0 ? 'none' : 'transform 0.3s ease',
+        }}
+      >
+        <div className="flex items-center gap-4 flex-1 min-w-0">
+          {/* Avatar del usuario */}
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0 overflow-hidden"
+            style={{
               background:
                 gasto.quien === 'el'
                   ? 'var(--secondary-container)'
                   : 'var(--tertiary-container)',
             }}
           >
-          <img 
-            src={gasto.quien === 'el' ? getAvatarUrl(avatarElSeed) : getAvatarUrl(avatarEllaSeed)}
-            alt="Avatar"
-            className="w-full h-full object-cover"
-          />
-          </div>
-        
-        <div className="min-w-0 flex-1">
-          <p
-            className="font-medium truncate"
-            style={{
-              color: 'var(--on-surface)',
-              fontFamily: 'Inter, sans-serif',
-            }}
-          >
-            {gasto.descripcion}
-          </p>
-          <div className="flex items-center gap-2 mt-1">
-            <span
-              className="text-xs"
-              style={{
-                color: 'var(--on-surface-variant)',
-                fontFamily: 'Inter, sans-serif',
-              }}
-            >
-              {formatDate(gasto.fecha)}
-            </span>
-            <span
-              className="px-2 py-0.5 rounded-full text-xs font-medium"
-              style={{
-                background:
-                  gasto.tipo === 'compartido'
-                    ? isDark
-                      ? 'rgba(179, 136, 255, 0.2)'
-                      : '#eaddff'
-                    : 'var(--surface-container-low)',
-                color:
-                  gasto.tipo === 'compartido'
-                    ? 'var(--primary)'
-                    : 'var(--on-surface-variant)',
-                fontFamily: 'Inter, sans-serif',
-              }}
-            >
-              {gasto.tipo === 'compartido' ? 'Compartido' : 'Propio'}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-2 flex-shrink-0">
-        <span
-          className="font-bold text-lg"
-          style={{ color: 'var(--on-surface)', fontFamily: 'Manrope, sans-serif' }}
-        >
-          {formatCurrency(gasto.monto)}
-        </span>
-        
-        <button
-          onClick={onMenuClick}
-          className="p-2 rounded-full transition-all hover:bg-[var(--surface-container-low)]"
-          style={{ color: 'var(--on-surface-variant)' }}
-          aria-label="Más opciones"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="6" r="1.5" fill="currentColor"/>
-            <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
-            <circle cx="12" cy="18" r="1.5" fill="currentColor"/>
-          </svg>
-        </button>
-      </div>
-
-      {/* Dropdown Menu */}
-      {isMenuOpen && menuPosition && (
-        <div 
-          className="fixed z-50 min-w-[160px] py-2"
-          style={{ 
-            top: menuPosition.top, 
-            left: menuPosition.left,
-            background: 'var(--surface-container-low)',
-            borderRadius: '12px',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.15)'
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Header con descripción del gasto */}
-          <div 
-            className="px-4 py-2 border-b"
-            style={{ 
-              borderColor: 'var(--surface-container-low)',
-              color: 'var(--on-surface-variant)',
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '12px'
-            }}
-          >
-            {gasto.descripcion}
+            <img 
+              src={gasto.quien === 'el' ? getAvatarUrl(avatarElSeed) : getAvatarUrl(avatarEllaSeed)}
+              alt="Avatar"
+              className="w-full h-full object-cover"
+            />
           </div>
           
-          <button
-            onClick={() => { onEditClick(); onCloseMenu?.() }}
-            className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-[var(--surface-container-low)] transition-colors"
-            style={{ color: 'var(--on-surface)', fontFamily: 'Inter, sans-serif' }}
+          <div className="min-w-0 flex-1">
+            <p
+              className="font-medium truncate"
+              style={{
+                color: 'var(--on-surface)',
+                fontFamily: 'Inter, sans-serif',
+              }}
+            >
+              {gasto.descripcion}
+            </p>
+            <div className="flex items-center gap-2 mt-1">
+              <span
+                className="text-xs"
+                style={{
+                  color: 'var(--on-surface-variant)',
+                  fontFamily: 'Inter, sans-serif',
+                }}
+              >
+                {formatDate(gasto.fecha)}
+              </span>
+              <span
+                className="px-2 py-0.5 rounded-full text-xs font-medium"
+                style={{
+                  background:
+                    gasto.tipo === 'compartido'
+                      ? isDark
+                        ? 'rgba(179, 136, 255, 0.2)'
+                        : '#eaddff'
+                      : 'var(--surface-container-low)',
+                  color:
+                    gasto.tipo === 'compartido'
+                      ? 'var(--primary)'
+                      : 'var(--on-surface-variant)',
+                  fontFamily: 'Inter, sans-serif',
+                }}
+              >
+                {gasto.tipo === 'compartido' ? 'Compartido' : 'Propio'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <span
+            className="font-bold text-lg"
+            style={{ color: 'var(--on-surface)', fontFamily: 'Manrope, sans-serif' }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ color: 'var(--primary)' }}>
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-            Editar
-          </button>
+            {formatCurrency(gasto.monto)}
+          </span>
+          
           <button
-            onClick={() => { onDeleteClick(); onCloseMenu?.() }}
-            className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-[var(--surface-container-low)] transition-colors"
-            style={{ color: 'var(--error)', fontFamily: 'Inter, sans-serif' }}
+            onClick={onMenuClick}
+            className="p-2 rounded-full transition-all hover:bg-[var(--surface-container-low)]"
+            style={{ color: 'var(--on-surface-variant)' }}
+            aria-label="Más opciones"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M19 7L18.1327 19.1425C18.0573 20.8857 16.8029 22.2435 15.0643 22.1052L8.9133 21.0193C7.14189 20.8783 5.60101 19.3292 5.49236 17.5545L5.15894 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M10 17V13M14 17V13M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M2 7H22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="6" r="1.5" fill="currentColor"/>
+              <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+              <circle cx="12" cy="18" r="1.5" fill="currentColor"/>
             </svg>
-            Eliminar
           </button>
         </div>
-      )}
-    </div>
+
+        {/* Dropdown Menu */}
+        {isMenuOpen && menuPosition && (
+          <div 
+            className="fixed z-50 min-w-[160px] py-2"
+            style={{ 
+              top: menuPosition.top, 
+              left: menuPosition.left,
+              background: 'var(--surface-container-low)',
+              borderRadius: '12px',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.15)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header con descripción del gasto */}
+            <div 
+              className="px-4 py-2 border-b"
+              style={{ 
+                borderColor: 'var(--surface-container-low)',
+                color: 'var(--on-surface-variant)',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '12px'
+              }}
+            >
+              {gasto.descripcion}
+            </div>
+            
+            <button
+              onClick={() => { onEditClick(); onCloseMenu?.() }}
+              className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-[var(--surface-container-low)] transition-colors"
+              style={{ color: 'var(--on-surface)', fontFamily: 'Inter, sans-serif' }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ color: 'var(--primary)' }}>
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              Editar
+            </button>
+            <button
+              onClick={() => { onDeleteClick(); onCloseMenu?.() }}
+              className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-[var(--surface-container-low)] transition-colors"
+              style={{ color: 'var(--error)', fontFamily: 'Inter, sans-serif' }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M19 7L18.1327 19.1425C18.0573 20.8857 16.8029 22.2435 15.0643 22.1052L8.9133 21.0193C7.14189 20.8783 5.60101 19.3292 5.49236 17.5545L5.15894 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M10 17V13M14 17V13M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M2 7H22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              Eliminar
+            </button>
+          </div>
+        )}
+      </div>
+</div>
   )
 }
