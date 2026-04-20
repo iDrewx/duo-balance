@@ -685,8 +685,8 @@ function GastoItem({
             {formatCurrency(gasto.monto)}
           </span>
           
-          {/* Solo mostrar botón de menú en desktop */}
-          {!isMobile && (
+          {/* Mostrar botón de menú si no es mobile (desktop) */}
+          {isMobile !== true && (
             <button
               onClick={(e) => { e.stopPropagation(); onMenuClick?.(e) }}
               className="p-2 rounded-full transition-all hover:bg-[var(--surface-container-low)]"
