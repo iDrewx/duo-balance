@@ -94,7 +94,7 @@ export default function UserSelector({ onSelect }: UserSelectorProps) {
           >
             {/* Avatar */}
             <div 
-              className="w-24 h-24 rounded-3xl flex items-center justify-center overflow-hidden"
+              className="w-24 h-24 rounded-xl flex items-center justify-center overflow-hidden"
             >
               <img
                 src={isEl ? getAvatarUrl(avatar_el_seed) : getAvatarUrl(avatar_ella_seed)}
@@ -189,7 +189,7 @@ export default function UserSelector({ onSelect }: UserSelectorProps) {
           >
             {/* Avatar */}
             <div 
-              className="w-16 h-16 sm:w-24 sm:h-24 rounded-2xl sm:rounded-3xl flex items-center justify-center overflow-hidden"
+              className="w-16 h-16 sm:w-24 sm:h-24 rounded-xl flex items-center justify-center overflow-hidden"
             >
               <img
                 src={getAvatarUrl(avatar_el_seed)}
@@ -234,7 +234,7 @@ export default function UserSelector({ onSelect }: UserSelectorProps) {
           >
             {/* Avatar */}
             <div 
-              className="w-16 h-16 sm:w-24 sm:h-24 rounded-2xl sm:rounded-3xl flex items-center justify-center overflow-hidden"
+              className="w-16 h-16 sm:w-24 sm:h-24 rounded-xl flex items-center justify-center overflow-hidden"
             >
               <img
                 src={getAvatarUrl(avatar_ella_seed)}
