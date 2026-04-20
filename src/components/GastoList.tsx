@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { Gasto, GastoTipo } from '@/types'
 import { useTheme } from '@/context/ThemeContext'
 import { useUserSettings } from '@/context/UserSettingsContext'
@@ -40,6 +40,12 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 })
 
+  // Detectar si es dispositivo táctil (mobile/tablet)
+  const isTouchDevice = useMemo(() => {
+    if (typeof window === 'undefined') return false
+    return window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window
+  }, [])
+
   const avatarElSeed = settings?.avatar_el_seed || 'default-el'
   const avatarEllaSeed = settings?.avatar_ella_seed || 'default-ella'
   
@@ -52,8 +58,19 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
 
   // Limitar gastos visibles (10 por defecto)
   const [visibleCount, setVisibleCount] = useState(10)
+  const [loadingMore, setLoadingMore] = useState(false)
   const visibleGastos = sortedGastos.slice(0, visibleCount)
   const hasMore = visibleCount < sortedGastos.length
+
+  // Handle mostrar más con animación
+  const handleShowMore = () => {
+    if (loadingMore) return
+    setLoadingMore(true)
+    setTimeout(() => {
+      setVisibleCount(prev => prev + 10)
+      setLoadingMore(false)
+    }, 500)
+  }
 
   // Track newly added expenses for animation
   useEffect(() => {
@@ -207,6 +224,7 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
               onMenuClick={(e) => handleMenuClick(gasto.id, e)}
               menuPosition={openMenuId === gasto.id ? menuPosition : undefined}
               onCloseMenu={closeMenu}
+              isMobile={isTouchDevice}
             />
           ))}
         </div>
@@ -215,18 +233,26 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
         {hasMore && (
           <div className="p-4 border-t" style={{ borderColor: 'var(--outline)' }}>
             <button
-              onClick={() => setVisibleCount(prev => prev + 10)}
-              className="w-full py-3 text-sm font-medium rounded-xl transition-all flex items-center justify-center gap-2"
+              onClick={handleShowMore}
+              disabled={loadingMore}
+              className="w-full py-3 text-sm font-medium rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               style={{ 
                 background: 'var(--surface-container-low)',
                 color: 'var(--primary)',
                 border: '1px solid var(--outline)'
               }}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-              Mostrar más ({sortedGastos.length - visibleCount} más)
+              {loadingMore ? (
+                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              )}
+              {loadingMore ? 'Cargando...' : `Mostrar más (${sortedGastos.length - visibleCount} más)`}
             </button>
           </div>
         )}
@@ -448,6 +474,7 @@ function GastoItem({
   onMenuClick,
   menuPosition,
   onCloseMenu,
+  isMobile,
 }: {
   gasto: Gasto
   avatarElSeed: string
@@ -462,10 +489,12 @@ function GastoItem({
   onMenuClick?: (e: React.MouseEvent) => void
   menuPosition?: { top: number; left: number }
   onCloseMenu?: () => void
+  isMobile?: boolean
 }) {
   const [swipeOffset, setSwipeOffset] = useState(0)
 
-  const handlers = useSwipeable({
+  // Solo activar swipe en mobile, no en desktop
+  const handlers = isMobile ? useSwipeable({
     onSwiping: (event) => {
       setSwipeOffset(event.deltaX)
     },
@@ -480,14 +509,14 @@ function GastoItem({
     onSwiped: () => {
       setSwipeOffset(0)
     },
-    delta: { left: 80, right: 80 },
+    delta: { left: 120, right: 120 },
     trackTouch: true,
     trackMouse: false,
-  })
+  }) : {}
 
-  const isSwipeRevealed = Math.abs(swipeOffset) > 20
-  const showDeleteReveal = swipeOffset < -20
-  const showEditReveal = swipeOffset > 20
+  const isSwipeRevealed = Math.abs(swipeOffset) > 40
+  const showDeleteReveal = swipeOffset < -40
+  const showEditReveal = swipeOffset > 40
 
   return (
     <div 
@@ -531,7 +560,7 @@ function GastoItem({
       <div 
         className="absolute inset-0 flex items-center justify-end pr-6"
         style={{ 
-          background: isSwipeRevealed ? 'var(--error)' : 'transparent',
+          background: showDeleteReveal ? 'var(--error)' : 'transparent',
           transition: 'background 0.2s ease',
         }}
       >
@@ -553,7 +582,7 @@ function GastoItem({
       <div 
         className="absolute inset-0 flex items-center justify-start pl-6"
         style={{ 
-          background: isSwipeRevealed ? 'var(--primary)' : 'transparent',
+          background: showEditReveal ? 'var(--primary)' : 'transparent',
           transition: 'background 0.2s ease',
         }}
       >
@@ -650,18 +679,21 @@ function GastoItem({
             {formatCurrency(gasto.monto)}
           </span>
           
-          <button
-            onClick={onMenuClick}
-            className="p-2 rounded-full transition-all hover:bg-[var(--surface-container-low)]"
-            style={{ color: 'var(--on-surface-variant)' }}
-            aria-label="Más opciones"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="6" r="1.5" fill="currentColor"/>
-              <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
-              <circle cx="12" cy="18" r="1.5" fill="currentColor"/>
-            </svg>
-          </button>
+          {/* Solo mostrar botón de menú en desktop */}
+          {!isMobile && (
+            <button
+              onClick={onMenuClick}
+              className="p-2 rounded-full transition-all hover:bg-[var(--surface-container-low)]"
+              style={{ color: 'var(--on-surface-variant)' }}
+              aria-label="Más opciones"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="6" r="1.5" fill="currentColor"/>
+                <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+                <circle cx="12" cy="18" r="1.5" fill="currentColor"/>
+              </svg>
+            </button>
+          )}
         </div>
 
         {/* Dropdown Menu */}

@@ -379,9 +379,6 @@ export default function SettingsPage() {
               src={getAvatarUrl(avatarSeed)}
               alt="Avatar actual"
               className="w-24 h-24 rounded-full"
-              style={{ 
-                background: selectedUser === 'el' ? 'var(--secondary-container)' : 'var(--tertiary-container)'
-              }}
             />
           </div>
 
@@ -407,11 +404,8 @@ export default function SettingsPage() {
               <button
                 key={seed}
                 onClick={() => setAvatarSeed(seed)}
-                className="w-full aspect-square rounded-lg flex items-center justify-center transition-all overflow-hidden"
+                className="w-full aspect-square rounded-xl flex items-center justify-center transition-all overflow-hidden"
                 style={{ 
-                  background: avatarSeed === seed 
-                    ? (selectedUser === 'el' ? 'var(--secondary-container)' : 'var(--tertiary-container)') 
-                    : 'var(--surface-container-low)',
                   border: avatarSeed === seed 
                     ? `2px solid ${selectedUser === 'el' ? 'var(--secondary)' : 'var(--tertiary)'}` 
                     : '2px solid transparent'
