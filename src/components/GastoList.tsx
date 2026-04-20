@@ -606,26 +606,12 @@ function GastoItem({
         </div>
       </div>
 
-      {/* Botón de menú (fuera del swipe) */}
-      {(isMobile === false || isMobile === undefined) && (
-        <button
-          onClick={(e) => { e.stopPropagation(); onMenuClick?.(e) }}
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full transition-all hover:bg-[var(--surface-container-low)]"
-          style={{ color: 'var(--on-surface-variant)' }}
-          aria-label="Más opciones"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="6" r="1.5" fill="currentColor"/>
-            <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
-            <circle cx="12" cy="18" r="1.5" fill="currentColor"/>
-          </svg>
-        </button>
-      )}
+      
 
       {/* Contenido principal con swipe */}
       <div 
         {...handlers}
-        className="px-6 py-4 flex items-center justify-between border-b transition-all duration-300 cursor-grab active:cursor-grabbing"
+        className="px-6 py-4 flex items-center justify-between border-b transition-all duration-300"
         style={{ 
           borderColor: showDeleteReveal ? 'var(--error)' : showEditReveal ? 'var(--primary)' : 'var(--surface-container-low)',
           background: 'var(--surface-container-lowest)',
@@ -633,6 +619,21 @@ function GastoItem({
           transition: swipeOffset !== 0 ? 'none' : 'transform 0.3s ease, border-color 0.2s ease',
         }}
       >
+        {/* Botón de menú (dentro del swipe, al final) */}
+        {(isMobile === false || isMobile === undefined) && (
+          <button
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); onMenuClick?.(e) }}
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full transition-all hover:bg-[var(--surface-container-low)]"
+            style={{ color: 'var(--on-surface-variant)' }}
+            aria-label="Más opciones"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="6" r="1.5" fill="currentColor"/>
+              <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+              <circle cx="12" cy="18" r="1.5" fill="currentColor"/>
+            </svg>
+          </button>
+        )}
         <div className="flex items-center gap-4 flex-1 min-w-0">
           {/* Avatar del usuario */}
           <div

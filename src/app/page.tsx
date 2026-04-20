@@ -62,7 +62,7 @@ export default function Home() {
             console.error('Error fetching gastos:', error)
             loadLocalGastos()
           } else if (data) {
-            console.log('Gastos from DB:', data)
+            
             setGastos(data)
           }
         } catch (err) {
