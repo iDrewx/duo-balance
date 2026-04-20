@@ -161,10 +161,12 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
     )
   }
 
-  // Sort by date descending
-  const sortedGastos = [...gastos].sort((a, b) => 
-    new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
-  )
+  // Sort by created_at descending (last added first)
+  const sortedGastos = [...gastos].sort((a, b) => {
+    const dateA = a.created_at ? new Date(a.created_at).getTime() : new Date(a.fecha).getTime()
+    const dateB = b.created_at ? new Date(b.created_at).getTime() : new Date(b.fecha).getTime()
+    return dateB - dateA
+  })
 
   return (
     <>
