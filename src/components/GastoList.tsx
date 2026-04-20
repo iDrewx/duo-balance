@@ -606,6 +606,22 @@ function GastoItem({
         </div>
       </div>
 
+      {/* Botón de menú (fuera del swipe para desktop) */}
+      {isMobile !== true && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onMenuClick?.(e) }}
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full transition-all hover:bg-[var(--surface-container-low)]"
+          style={{ color: 'var(--on-surface-variant)' }}
+          aria-label="Más opciones"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="6" r="1.5" fill="currentColor"/>
+            <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+            <circle cx="12" cy="18" r="1.5" fill="currentColor"/>
+          </svg>
+        </button>
+      )}
+
       {/* Contenido principal con swipe */}
       <div 
         {...handlers}
@@ -684,22 +700,6 @@ function GastoItem({
           >
             {formatCurrency(gasto.monto)}
           </span>
-          
-          {/* Mostrar botón de menú si no es mobile (desktop) */}
-          {isMobile !== true && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onMenuClick?.(e) }}
-              className="p-2 rounded-full transition-all hover:bg-[var(--surface-container-low)]"
-              style={{ color: 'var(--on-surface-variant)' }}
-              aria-label="Más opciones"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="6" r="1.5" fill="currentColor"/>
-                <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
-                <circle cx="12" cy="18" r="1.5" fill="currentColor"/>
-              </svg>
-            </button>
-          )}
         </div>
 
         {/* Dropdown Menu */}
