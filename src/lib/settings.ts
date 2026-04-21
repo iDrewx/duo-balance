@@ -44,6 +44,64 @@ export async function getUserSettings(): Promise<UserSettings | null> {
   }
 }
 
+/**
+ * Crea settings iniciales para un usuario con seeds determinísticas basadas en el user_id
+ */
+export async function createUserSettingsIfNotExist(): Promise<UserSettings | null> {
+  const supabase = getSupabase()
+  if (!supabase) return null
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  // Verificar si ya existen settings
+  const { data: existing } = await supabase
+    .from('user_settings')
+    .select('*')
+    .eq('user_id', user.id)
+    .single()
+
+  if (existing) {
+    return getUserSettings()
+  }
+
+  // Generar seeds determinísticas basadas en el user_id
+  // Usamos user.id como parte del seed para que sea igual en todos los dispositivos
+  const avatarElSeed = `seed-${user.id}-el`
+  const avatarEllaSeed = `seed-${user.id}-ella`
+
+  const { data, error } = await supabase
+    .from('user_settings')
+    .insert([{
+      user_id: user.id,
+      nombre_el: 'André',
+      nombre_ella: 'Diana',
+      avatar_el_seed: avatarElSeed,
+      avatar_ella_seed: avatarEllaSeed,
+      assigned_profile: null,
+      theme: 'system'
+    }])
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error creating user settings:', error)
+    return null
+  }
+
+  return {
+    user_id: data.user_id,
+    nombre_el: data.nombre_el,
+    nombre_ella: data.nombre_ella,
+    avatar_el: data.avatar_el || '👨',
+    avatar_ella: data.avatar_ella || '👩',
+    avatar_el_seed: data.avatar_el_seed,
+    avatar_ella_seed: data.avatar_ella_seed,
+    assigned_profile: data.assigned_profile as UserRole | null,
+    theme: (data.theme || 'system') as 'light' | 'dark' | 'system'
+  }
+}
+
 export async function updateUserSettings(updates: Partial<UserSettings>): Promise<boolean> {
   const supabase = getSupabase()
   if (!supabase) return false

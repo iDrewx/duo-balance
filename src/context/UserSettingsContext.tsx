@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { getUserSettings, getCachedSettings, cacheSettingsInLocal, updateUserSettings, UserSettings, DEFAULT_SETTINGS } from '@/lib/settings'
+import { getUserSettings, getCachedSettings, cacheSettingsInLocal, updateUserSettings, UserSettings, DEFAULT_SETTINGS, createUserSettingsIfNotExist } from '@/lib/settings'
 
 interface UserSettingsContextType {
   settings: UserSettings | null
@@ -18,16 +18,22 @@ export function UserSettingsProvider({ children }: { children: ReactNode }) {
 
   const loadSettings = async () => {
     setIsLoading(true)
-    
+
     // 1. Primero cargar desde cache local (más rápido)
     const cached = getCachedSettings()
     if (cached) {
       setSettings(cached)
     }
-    
+
     // 2. Luego intentar desde Supabase
     try {
-      const supabaseSettings = await getUserSettings()
+      let supabaseSettings = await getUserSettings()
+
+      // Si no hay settings en Supabase, crear iniciales con seeds determinísticas
+      if (!supabaseSettings) {
+        supabaseSettings = await createUserSettingsIfNotExist()
+      }
+
       if (supabaseSettings) {
         setSettings(supabaseSettings)
         cacheSettingsInLocal(supabaseSettings)
@@ -41,7 +47,7 @@ export function UserSettingsProvider({ children }: { children: ReactNode }) {
         setSettings(DEFAULT_SETTINGS)
       }
     }
-    
+
     setIsLoading(false)
   }
 
