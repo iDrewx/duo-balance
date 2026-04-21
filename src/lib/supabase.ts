@@ -11,20 +11,12 @@ export const getSupabase = (): SupabaseClient | null => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  // Debug log
-  console.log('🔍 Supabase check:', { 
-    hasUrl: !!supabaseUrl, 
-    hasKey: !!supabaseAnonKey,
-    url: supabaseUrl ? supabaseUrl.substring(0, 40) + '...' : 'missing'
-  })
-
   // Don't create client if credentials are missing
   if (!supabaseUrl || !supabaseAnonKey) {
     return null
   }
 
   if (!supabase) {
-    console.log('✅ Creating Supabase client')
     supabase = createClient(supabaseUrl, supabaseAnonKey)
   }
   return supabase
