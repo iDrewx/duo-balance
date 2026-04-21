@@ -52,27 +52,65 @@ export function UserSettingsProvider({ children }: { children: ReactNode }) {
     setIsLoading(false)
   }
 
-  // Suscribirse a cambios en tiempo real de user_settings
+  // Cargar settings iniciales y suscribirse a cambios en tiempo real
   useEffect(() => {
     const supabase = getSupabase()
-    if (!supabase) return
 
-    // Suscribirse a cambios en la tabla user_settings (ya no filtra por user_id)
-    const channel = supabase
-      .channel('user-settings-realtime')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'user_settings'
-      }, (payload) => {
-        const updatedSettings = payload.new as UserSettings
-        setSettings(updatedSettings)
-        cacheSettingsInLocal(updatedSettings)
-      })
-      .subscribe()
+    const initSettings = async () => {
+      setIsLoading(true)
 
-    return () => {
-      supabase.removeChannel(channel)
+      // 1. Primero cargar desde cache local (más rápido)
+      const cached = getCachedSettings()
+      if (cached) {
+        setSettings(cached)
+      }
+
+      // 2. Luego intentar desde Supabase
+      try {
+        let supabaseSettings = await getUserSettings()
+
+        // Si no hay settings en Supabase, crear iniciales con seeds determinísticas
+        if (!supabaseSettings) {
+          supabaseSettings = await createUserSettingsIfNotExist()
+        }
+
+        if (supabaseSettings) {
+          setSettings(supabaseSettings)
+          cacheSettingsInLocal(supabaseSettings)
+        } else if (!cached) {
+          // Si no hay cache ni settings de Supabase, usar defaults
+          setSettings(DEFAULT_SETTINGS)
+        }
+      } catch (error) {
+        console.error('Error loading settings:', error)
+        if (!cached) {
+          setSettings(DEFAULT_SETTINGS)
+        }
+      }
+
+      setIsLoading(false)
+    }
+
+    initSettings()
+
+    // Suscribirse a cambios en tiempo real de user_settings
+    if (supabase) {
+      const channel = supabase
+        .channel('user-settings-realtime')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'user_settings'
+        }, (payload) => {
+          const updatedSettings = payload.new as UserSettings
+          setSettings(updatedSettings)
+          cacheSettingsInLocal(updatedSettings)
+        })
+        .subscribe()
+
+      return () => {
+        supabase.removeChannel(channel)
+      }
     }
   }, [])
 

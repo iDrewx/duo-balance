@@ -313,10 +313,11 @@ export default function Home() {
   }
 
   // Si hay un perfil asignado, forzar ese perfil
-  if (!user && assignedProfile) {
-    setUser(assignedProfile)
-    return null
-  }
+  useEffect(() => {
+    if (!user && assignedProfile) {
+      setUser(assignedProfile)
+    }
+  }, [user, assignedProfile])
 
   // TypeScript cast para asegurar que user no es null
   const currentUser = user as UserRole
