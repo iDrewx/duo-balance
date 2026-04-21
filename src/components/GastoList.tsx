@@ -227,7 +227,7 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
               onDeleteClick={() => handleDeleteClick(gasto.id)}
               onEditClick={() => handleEditClick(gasto)}
               isMenuOpen={openMenuId === gasto.id}
-              onMenuClick={(e) => handleMenuClick(gasto.id, e)}
+              onMenuClick={handleMenuClick}
               menuPosition={openMenuId === gasto.id ? menuPosition : undefined}
               onCloseMenu={closeMenu}
               isMobile={isTouchDevice}
@@ -492,7 +492,7 @@ function GastoItem({
   onDeleteClick: () => void
   onEditClick: () => void
   isMenuOpen?: boolean
-  onMenuClick?: (e: React.MouseEvent) => void
+  onMenuClick?: (gastoId: string, e: React.MouseEvent) => void
   menuPosition?: { top: number; left: number }
   onCloseMenu?: () => void
   isMobile?: boolean
@@ -609,35 +609,16 @@ function GastoItem({
       
 
       {/* Contenido principal con swipe */}
-      <div 
+      <div
         {...handlers}
         className="px-6 py-4 flex items-center justify-between border-b transition-all duration-300"
-        style={{ 
+        style={{
           borderColor: showDeleteReveal ? 'var(--error)' : showEditReveal ? 'var(--primary)' : 'var(--surface-container-low)',
           background: 'var(--surface-container-lowest)',
           transform: `translateX(${swipeOffset}px)`,
           transition: swipeOffset !== 0 ? 'none' : 'transform 0.3s ease, border-color 0.2s ease',
         }}
       >
-        {/* Botón de menú (dentro del swipe, al final) */}
-        {(isMobile === false || isMobile === undefined) && (
-          <button
-            onMouseDown={(e) => e.stopPropagation()}
-            onClick={(e) => {
-              e.stopPropagation()
-              onMenuClick?.(e)
-            }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full transition-all hover:bg-[var(--surface-container-low)]"
-            style={{ color: 'var(--on-surface-variant)' }}
-            aria-label="Más opciones"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="6" r="1.5" fill="currentColor"/>
-              <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
-              <circle cx="12" cy="18" r="1.5" fill="currentColor"/>
-            </svg>
-          </button>
-        )}
         <div className="flex items-center gap-4 flex-1 min-w-0">
           {/* Avatar del usuario */}
           <div
@@ -705,59 +686,79 @@ function GastoItem({
           >
             {formatCurrency(gasto.monto)}
           </span>
-        </div>
 
-        {/* Dropdown Menu */}
-        {isMenuOpen && menuPosition && (
-          <div 
-            className="fixed z-50 min-w-[160px] py-2"
-            style={{ 
-              top: menuPosition.top, 
-              left: menuPosition.left,
-              background: 'var(--surface-container-low)',
-              borderRadius: '12px',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.15)'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header con descripción del gasto */}
-            <div 
-              className="px-4 py-2 border-b"
-              style={{ 
-                borderColor: 'var(--surface-container-low)',
-                color: 'var(--on-surface-variant)',
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '12px'
+          {/* Botón de menú (desktop, después del monto para evitar superposición) */}
+          {!isMobile && (
+            <button
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation()
+                onMenuClick?.(gasto.id, e)
               }}
+              className="p-2 rounded-full transition-all hover:bg-[var(--surface-container-low)] ml-1"
+              style={{ color: 'var(--on-surface-variant)' }}
+              aria-label="Más opciones"
             >
-              {gasto.descripcion}
-            </div>
-            
-            <button
-              onClick={() => { onEditClick(); onCloseMenu?.() }}
-              className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-[var(--surface-container-low)] transition-colors"
-              style={{ color: 'var(--on-surface)', fontFamily: 'Inter, sans-serif' }}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ color: 'var(--primary)' }}>
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="6" r="1.5" fill="currentColor"/>
+                <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+                <circle cx="12" cy="18" r="1.5" fill="currentColor"/>
               </svg>
-              Editar
             </button>
-            <button
-              onClick={() => { onDeleteClick(); onCloseMenu?.() }}
-              className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-[var(--surface-container-low)] transition-colors"
-              style={{ color: 'var(--error)', fontFamily: 'Inter, sans-serif' }}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <path d="M19 7L18.1327 19.1425C18.0573 20.8857 16.8029 22.2435 15.0643 22.1052L8.9133 21.0193C7.14189 20.8783 5.60101 19.3292 5.49236 17.5545L5.15894 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                <path d="M10 17V13M14 17V13M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M2 7H22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-              Eliminar
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-</div>
+
+      {/* Dropdown Menu — fuera del div con transform para que position: fixed funcione correctamente */}
+      {isMenuOpen && menuPosition && (
+        <div
+          className="fixed z-50 min-w-[160px] py-2"
+          style={{
+            top: menuPosition.top,
+            left: menuPosition.left,
+            background: 'var(--surface-container-low)',
+            borderRadius: '12px',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.15)'
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header con descripción del gasto */}
+          <div
+            className="px-4 py-2 border-b"
+            style={{
+              borderColor: 'var(--outline-variant)',
+              color: 'var(--on-surface-variant)',
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '12px'
+            }}
+          >
+            {gasto.descripcion}
+          </div>
+
+          <button
+            onClick={() => { onEditClick(); onCloseMenu?.() }}
+            className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-[var(--surface-container-highest)] transition-colors"
+            style={{ color: 'var(--on-surface)', fontFamily: 'Inter, sans-serif' }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ color: 'var(--primary)' }}>
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            Editar
+          </button>
+          <button
+            onClick={() => { onDeleteClick(); onCloseMenu?.() }}
+            className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-[var(--surface-container-highest)] transition-colors"
+            style={{ color: 'var(--error)', fontFamily: 'Inter, sans-serif' }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M19 7L18.1327 19.1425C18.0573 20.8857 16.8029 22.2435 15.0643 22.1052L8.9133 21.0193C7.14189 20.8783 5.60101 19.3292 5.49236 17.5545L5.15894 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M10 17V13M14 17V13M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M2 7H22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            Eliminar
+          </button>
+        </div>
+      )}
+    </div>
   )
 }
