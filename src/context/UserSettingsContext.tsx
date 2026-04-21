@@ -8,7 +8,7 @@ interface UserSettingsContextType {
   settings: UserSettings | null
   isLoading: boolean
   updateSettings: (updates: Partial<UserSettings>) => Promise<boolean>
-  refetch: () => Promise<void>
+  refetch: () => Promise<UserSettings | null | void>
 }
 
 const UserSettingsContext = createContext<UserSettingsContextType | undefined>(undefined)
@@ -17,16 +17,8 @@ export function UserSettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<UserSettings | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  const loadSettings = async () => {
-    setIsLoading(true)
-
-    // 1. Primero cargar desde cache local (más rápido)
-    const cached = getCachedSettings()
-    if (cached) {
-      setSettings(cached)
-    }
-
-    // 2. Luego intentar desde Supabase
+  // Cargar settings desde Supabase (sin tocar isLoading para evitar carreras)
+  const loadSettingsFromSupabase = async () => {
     try {
       let supabaseSettings = await getUserSettings()
 
@@ -38,18 +30,12 @@ export function UserSettingsProvider({ children }: { children: ReactNode }) {
       if (supabaseSettings) {
         setSettings(supabaseSettings)
         cacheSettingsInLocal(supabaseSettings)
-      } else if (!cached) {
-        // Si no hay cache ni settings de Supabase, usar defaults
-        setSettings(DEFAULT_SETTINGS)
+        return supabaseSettings
       }
     } catch (error) {
       console.error('Error loading settings:', error)
-      if (!cached) {
-        setSettings(DEFAULT_SETTINGS)
-      }
     }
-
-    setIsLoading(false)
+    return null
   }
 
   // Cargar settings iniciales y suscribirse a cambios en tiempo real
@@ -57,35 +43,16 @@ export function UserSettingsProvider({ children }: { children: ReactNode }) {
     const supabase = getSupabase()
 
     const initSettings = async () => {
-      setIsLoading(true)
-
       // 1. Primero cargar desde cache local (más rápido)
       const cached = getCachedSettings()
       if (cached) {
         setSettings(cached)
       }
 
-      // 2. Luego intentar desde Supabase
-      try {
-        let supabaseSettings = await getUserSettings()
-
-        // Si no hay settings en Supabase, crear iniciales con seeds determinísticas
-        if (!supabaseSettings) {
-          supabaseSettings = await createUserSettingsIfNotExist()
-        }
-
-        if (supabaseSettings) {
-          setSettings(supabaseSettings)
-          cacheSettingsInLocal(supabaseSettings)
-        } else if (!cached) {
-          // Si no hay cache ni settings de Supabase, usar defaults
-          setSettings(DEFAULT_SETTINGS)
-        }
-      } catch (error) {
-        console.error('Error loading settings:', error)
-        if (!cached) {
-          setSettings(DEFAULT_SETTINGS)
-        }
+      // 2. Luego intentar desde Supabase y actualizar si hay datos frescos
+      const supabaseSettings = await loadSettingsFromSupabase()
+      if (!supabaseSettings && !cached) {
+        setSettings(DEFAULT_SETTINGS)
       }
 
       setIsLoading(false)
@@ -111,6 +78,8 @@ export function UserSettingsProvider({ children }: { children: ReactNode }) {
       return () => {
         supabase.removeChannel(channel)
       }
+    } else {
+      setIsLoading(false)
     }
   }, [])
 
@@ -121,20 +90,20 @@ export function UserSettingsProvider({ children }: { children: ReactNode }) {
       setSettings(newSettings)
       cacheSettingsInLocal(newSettings)
     }
-    
+
     // Guardar en Supabase
     const success = await updateUserSettings(updates)
     if (!success) {
       // Si falla, recargar desde Supabase
-      await loadSettings()
+      await loadSettingsFromSupabase()
       return false
     }
-    
+
     return true
   }
 
   return (
-    <UserSettingsContext.Provider value={{ settings, isLoading, updateSettings, refetch: loadSettings }}>
+    <UserSettingsContext.Provider value={{ settings, isLoading, updateSettings, refetch: loadSettingsFromSupabase }}>
       {children}
     </UserSettingsContext.Provider>
   )
