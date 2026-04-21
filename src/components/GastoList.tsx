@@ -500,7 +500,7 @@ function GastoItem({
   const [swipeOffset, setSwipeOffset] = useState(0)
 
   // Solo activar swipe en mobile, no en desktop
-  const handlers = isMobile ? useSwipeable({
+  const swipeHandlers = useSwipeable({
     onSwiping: (event) => {
       setSwipeOffset(event.deltaX)
     },
@@ -518,7 +518,8 @@ function GastoItem({
     delta: { left: 50, right: 50 },
     trackTouch: true,
     trackMouse: false,
-  }) : {}
+  })
+  const handlers = isMobile ? swipeHandlers : {}
 
   const isSwipeRevealed = Math.abs(swipeOffset) > 15
   const showDeleteReveal = swipeOffset < -15

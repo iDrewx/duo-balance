@@ -292,12 +292,19 @@ export default function Home() {
 
   const assignedProfile = settings?.assigned_profile
 
+  // Si hay un perfil asignado, forzar ese perfil
+  useEffect(() => {
+    if (!user && assignedProfile) {
+      setUser(assignedProfile)
+    }
+  }, [user, assignedProfile])
+
   // Si settings no cargan, mostrar loading
   if (settingsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--surface)]">
         <div className="text-center">
-          <div 
+          <div
             className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"
             style={{ borderTopColor: 'transparent' }}
           ></div>
@@ -311,13 +318,6 @@ export default function Home() {
   if (!user && !assignedProfile) {
     return <UserSelector onSelect={setUser} />
   }
-
-  // Si hay un perfil asignado, forzar ese perfil
-  useEffect(() => {
-    if (!user && assignedProfile) {
-      setUser(assignedProfile)
-    }
-  }, [user, assignedProfile])
 
   // TypeScript cast para asegurar que user no es null
   const currentUser = user as UserRole
