@@ -62,7 +62,7 @@ export default function Home() {
             console.error('Error fetching gastos:', error)
             loadLocalGastos()
           } else if (data) {
-            
+
             setGastos(data)
           }
         } catch (err) {
@@ -76,6 +76,48 @@ export default function Home() {
       }
     }
     loadData()
+  }, [])
+
+  // Suscribirse a cambios en tiempo real de gastos
+  useEffect(() => {
+    const supabase = getSupabase()
+    if (!supabase) return
+
+    const channel = supabase
+      .channel('gastos-realtime')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'gastos'
+      }, (payload) => {
+        const newGasto = payload.new as Gasto
+        setGastos(prev => {
+          // Evitar duplicados si el gasto ya está en la lista
+          if (prev.some(g => g.id === newGasto.id)) return prev
+          return [newGasto, ...prev]
+        })
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'gastos'
+      }, (payload) => {
+        const updatedGasto = payload.new as Gasto
+        setGastos(prev => prev.map(g => g.id === updatedGasto.id ? updatedGasto : g))
+      })
+      .on('postgres_changes', {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'gastos'
+      }, (payload) => {
+        const deletedId = payload.old.id
+        setGastos(prev => prev.filter(g => g.id !== deletedId))
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   const loadLocalGastos = () => {

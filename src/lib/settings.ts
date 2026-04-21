@@ -1,8 +1,11 @@
 import { getSupabase } from './supabase'
 import { UserRole } from '@/types'
 
+// Couple ID hardcoded - shared by both André and Diana
+const COUPLE_ID = 'duo-balance-main'
+
 export interface UserSettings {
-  user_id: string
+  couple_id: string
   nombre_el: string
   nombre_ella: string
   avatar_el: string
@@ -17,13 +20,10 @@ export async function getUserSettings(): Promise<UserSettings | null> {
   const supabase = getSupabase()
   if (!supabase) return null
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
-
   const { data, error } = await supabase
     .from('user_settings')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('couple_id', COUPLE_ID)
     .single()
 
   if (error || !data) {
@@ -32,48 +32,44 @@ export async function getUserSettings(): Promise<UserSettings | null> {
   }
 
   return {
-    user_id: data.user_id,
+    couple_id: data.couple_id,
     nombre_el: data.nombre_el || 'André',
     nombre_ella: data.nombre_ella || 'Diana',
     avatar_el: data.avatar_el || '👨',
     avatar_ella: data.avatar_ella || '👩',
-    avatar_el_seed: data.avatar_el_seed || `seed-${Date.now()}-el`,
-    avatar_ella_seed: data.avatar_ella_seed || `seed-${Date.now()}-ella`,
+    avatar_el_seed: data.avatar_el_seed || `seed-${COUPLE_ID}-el`,
+    avatar_ella_seed: data.avatar_ella_seed || `seed-${COUPLE_ID}-ella`,
     assigned_profile: data.assigned_profile as UserRole | null,
     theme: (data.theme || 'system') as 'light' | 'dark' | 'system'
   }
 }
 
 /**
- * Crea settings iniciales para un usuario con seeds determinísticas basadas en el user_id
+ * Crea settings iniciales para la pareja con seeds compartidas basadas en couple_id
  */
 export async function createUserSettingsIfNotExist(): Promise<UserSettings | null> {
   const supabase = getSupabase()
   if (!supabase) return null
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
-
   // Verificar si ya existen settings
   const { data: existing } = await supabase
     .from('user_settings')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('couple_id', COUPLE_ID)
     .single()
 
   if (existing) {
     return getUserSettings()
   }
 
-  // Generar seeds determinísticas basadas en el user_id
-  // Usamos user.id como parte del seed para que sea igual en todos los dispositivos
-  const avatarElSeed = `seed-${user.id}-el`
-  const avatarEllaSeed = `seed-${user.id}-ella`
+  // Seeds determinísticas basadas en couple_id - mismo seed en todos los dispositivos
+  const avatarElSeed = `seed-${COUPLE_ID}-el`
+  const avatarEllaSeed = `seed-${COUPLE_ID}-ella`
 
   const { data, error } = await supabase
     .from('user_settings')
     .insert([{
-      user_id: user.id,
+      couple_id: COUPLE_ID,
       nombre_el: 'André',
       nombre_ella: 'Diana',
       avatar_el_seed: avatarElSeed,
@@ -90,7 +86,7 @@ export async function createUserSettingsIfNotExist(): Promise<UserSettings | nul
   }
 
   return {
-    user_id: data.user_id,
+    couple_id: data.couple_id,
     nombre_el: data.nombre_el,
     nombre_ella: data.nombre_ella,
     avatar_el: data.avatar_el || '👨',
@@ -106,16 +102,13 @@ export async function updateUserSettings(updates: Partial<UserSettings>): Promis
   const supabase = getSupabase()
   if (!supabase) return false
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return false
-
   const { error } = await supabase
     .from('user_settings')
     .update({
       ...updates,
       updated_at: new Date().toISOString()
     })
-    .eq('user_id', user.id)
+    .eq('couple_id', COUPLE_ID)
 
   if (error) {
     console.error('Error updating settings:', error)
@@ -156,13 +149,13 @@ export const THEME_KEY = 'duobalance-theme'
 
 // Valores por defecto
 export const DEFAULT_SETTINGS: UserSettings = {
-  user_id: '',
+  couple_id: COUPLE_ID,
   nombre_el: 'André',
   nombre_ella: 'Diana',
   avatar_el: '👨',
   avatar_ella: '👩',
-  avatar_el_seed: 'default-el',
-  avatar_ella_seed: 'default-ella',
+  avatar_el_seed: `seed-${COUPLE_ID}-el`,
+  avatar_ella_seed: `seed-${COUPLE_ID}-ella`,
   assigned_profile: null,
   theme: 'system'
 }

@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { getUserSettings, getCachedSettings, cacheSettingsInLocal, updateUserSettings, UserSettings, DEFAULT_SETTINGS, createUserSettingsIfNotExist } from '@/lib/settings'
+import { getSupabase } from '@/lib/supabase'
 
 interface UserSettingsContextType {
   settings: UserSettings | null
@@ -51,8 +52,28 @@ export function UserSettingsProvider({ children }: { children: ReactNode }) {
     setIsLoading(false)
   }
 
+  // Suscribirse a cambios en tiempo real de user_settings
   useEffect(() => {
-    loadSettings()
+    const supabase = getSupabase()
+    if (!supabase) return
+
+    // Suscribirse a cambios en la tabla user_settings (ya no filtra por user_id)
+    const channel = supabase
+      .channel('user-settings-realtime')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'user_settings'
+      }, (payload) => {
+        const updatedSettings = payload.new as UserSettings
+        setSettings(updatedSettings)
+        cacheSettingsInLocal(updatedSettings)
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   const updateSettings = async (updates: Partial<UserSettings>): Promise<boolean> => {
