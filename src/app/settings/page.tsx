@@ -80,17 +80,22 @@ export default function SettingsPage() {
 
   const handleSave = async () => {
     if (!selectedUser || isSaving) return
-    
+
     setIsSaving(true)
-    
-    const updates = selectedUser === 'el' 
+
+    const updates = selectedUser === 'el'
       ? { nombre_el: nombre, avatar_el_seed: avatarSeed }
       : { nombre_ella: nombre, avatar_ella_seed: avatarSeed }
-    
+
     const success = await updateSettings(updates)
     setIsSaving(false)
     setSaveSuccess(success)
-    
+
+    // Regenerar seeds después de guardar para la próxima vez
+    if (success) {
+      setAvailableSeeds(generateRandomSeeds(10))
+    }
+
     // Ocultar mensaje después de 2 segundos
     if (success) {
       setTimeout(() => setSaveSuccess(null), 2000)
