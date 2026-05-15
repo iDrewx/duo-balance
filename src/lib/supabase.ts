@@ -27,10 +27,23 @@ export const debugSupabase = () => ({
   hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
   hasKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   url: process.env.NEXT_PUBLIC_SUPABASE_URL,
-  keyPreview: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY 
-    ? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.substring(0, 20) + '...' 
+  keyPreview: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    ? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.substring(0, 20) + '...'
     : 'missing'
 })
+
+// Server-side Supabase client (for API routes)
+export const getSupabaseServer = (): SupabaseClient | null => {
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseKey) {
+    console.error('Missing Supabase server credentials')
+    return null
+  }
+
+  return createClient(supabaseUrl, supabaseKey)
+}
 
 // Types for the app
 export type UserRole = 'el' | 'ella'

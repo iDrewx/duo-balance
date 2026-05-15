@@ -26,6 +26,8 @@ export interface Gasto {
   created_at?: string
   // Mes del corte al que pertenece (formato: YYYY-MM)
   corte?: string
+  // Indica si el gasto pertenece a un período cerrado
+  cerrado?: boolean
 }
 
 export interface Resumen {

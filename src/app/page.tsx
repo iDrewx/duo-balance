@@ -464,9 +464,9 @@ export default function Home() {
       <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {vista === 'resumen' ? (
           <>
-            <Resumen gastos={getGastosActuales()} currentUser={currentUser} />
+            <Resumen gastos={getGastosActuales().filter(g => !g.cerrado)} currentUser={currentUser} />
             <GastoForm quien={currentUser} onAgregar={handleAgregarGasto} />
-            <GastoList gastos={getGastosActuales()} onDelete={handleDeleteGasto} onEdit={handleEditGasto} />
+            <GastoList gastos={getGastosActuales().filter(g => !g.cerrado)} onDelete={handleDeleteGasto} onEdit={handleEditGasto} />
           </>
         ) : (
           <Historial gastos={gastos} />

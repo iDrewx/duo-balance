@@ -23,6 +23,8 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState<boolean | null>(null)
   const [confirmAssign, setConfirmAssign] = useState<{ show: boolean; profile: UserRole | null }>({ show: false, profile: null })
+  const [isClosingPeriod, setIsClosingPeriod] = useState(false)
+  const [closeResult, setCloseResult] = useState<{ success: boolean; message: string } | null>(null)
 
   const handleAssignButtonClick = (profile: UserRole | null) => {
     setConfirmAssign({ show: true, profile })
@@ -115,6 +117,28 @@ export default function SettingsPage() {
   const handleSignOut = async () => {
     await signOut()
     router.push('/login')
+  }
+
+  const handleCerrarPeriodo = async () => {
+    setIsClosingPeriod(true)
+    setCloseResult(null)
+    
+    try {
+      const response = await fetch('/api/settings/cerrar', { method: 'POST' })
+      const data = await response.json()
+      
+      if (data.error === 'already_closed') {
+        setCloseResult({ success: false, message: `El período ${data.periodo} ya está cerrado` })
+      } else if (data.error) {
+        setCloseResult({ success: false, message: 'Error al cerrar período' })
+      } else {
+        setCloseResult({ success: true, message: `Período ${data.periodo} cerrado exitosamente` })
+      }
+    } catch {
+      setCloseResult({ success: false, message: 'Error de conexión' })
+    } finally {
+      setIsClosingPeriod(false)
+    }
   }
 
   if (settingsLoading || !settings) {
@@ -439,6 +463,42 @@ export default function SettingsPage() {
         >
           {isSaving ? 'Guardando...' : 'Guardar cambios'}
         </button>
+
+        {/* Cierre de período */}
+        <div 
+          className="bg-[var(--surface-container-lowest)] p-6"
+          style={{ borderRadius: '24px', boxShadow: '0 12px 40px rgba(26, 28, 28, 0.06)' }}
+        >
+          <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--on-surface)', fontFamily: 'Manrope, sans-serif' }}>
+            Cierre de período
+          </h2>
+          <p className="text-sm mb-4" style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }}>
+            Cierra el período actual para ocultar gastos antiguos del resumen. Los gastos cerrados solo aparecerán en el historial.
+          </p>
+          <button
+            onClick={handleCerrarPeriodo}
+            disabled={isClosingPeriod}
+            className="w-full py-4 text-base font-semibold rounded-full disabled:opacity-50"
+            style={{ 
+              background: isClosingPeriod ? 'var(--surface-container-low)' : 'var(--primary)',
+              color: isClosingPeriod ? 'var(--on-surface-variant)' : 'var(--on-primary)',
+              fontFamily: 'Inter, sans-serif'
+            }}
+          >
+            {isClosingPeriod ? 'Cerrando período...' : 'Cerrar período actual'}
+          </button>
+          {closeResult && (
+            <p 
+              className="mt-3 text-sm font-medium"
+              style={{ 
+                color: closeResult.success ? 'var(--secondary)' : 'var(--error)',
+                fontFamily: 'Inter, sans-serif'
+              }}
+            >
+              {closeResult.message}
+            </p>
+          )}
+        </div>
 
         {/* Cerrar sesión */}
         <button
