@@ -25,6 +25,10 @@ export default function SettingsPage() {
   const [confirmAssign, setConfirmAssign] = useState<{ show: boolean; profile: UserRole | null }>({ show: false, profile: null })
   const [isClosingPeriod, setIsClosingPeriod] = useState(false)
   const [closeResult, setCloseResult] = useState<{ success: boolean; message: string } | null>(null)
+  const [showReopenSection, setShowReopenSection] = useState(false)
+  const [closedPeriods, setClosedPeriods] = useState<{ periodo: string; fecha_cierre: string }[]>([])
+  const [isReopening, setIsReopening] = useState(false)
+  const [reopenResult, setReopenResult] = useState<{ success: boolean; message: string } | null>(null)
 
   const handleAssignButtonClick = (profile: UserRole | null) => {
     setConfirmAssign({ show: true, profile })
@@ -122,11 +126,11 @@ export default function SettingsPage() {
   const handleCerrarPeriodo = async () => {
     setIsClosingPeriod(true)
     setCloseResult(null)
-    
+
     try {
       const response = await fetch('/api/settings/cerrar', { method: 'POST' })
       const data = await response.json()
-      
+
       if (data.error === 'already_closed') {
         setCloseResult({ success: false, message: `El período ${data.periodo} ya está cerrado` })
       } else if (data.error) {
@@ -138,6 +142,44 @@ export default function SettingsPage() {
       setCloseResult({ success: false, message: 'Error de conexión' })
     } finally {
       setIsClosingPeriod(false)
+    }
+  }
+
+  const handleReabrirPeriodo = async (periodo: string) => {
+    setIsReopening(true)
+    setReopenResult(null)
+
+    try {
+      const response = await fetch('/api/settings/reabrir', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ periodo })
+      })
+      const data = await response.json()
+
+      if (data.error) {
+        setReopenResult({ success: false, message: 'Error al reabrir período' })
+      } else {
+        setReopenResult({ success: true, message: `Período ${data.periodo} reabierto exitosamente` })
+        // Refresh the list
+        fetchClosedPeriods()
+      }
+    } catch {
+      setReopenResult({ success: false, message: 'Error de conexión' })
+    } finally {
+      setIsReopening(false)
+    }
+  }
+
+  const fetchClosedPeriods = async () => {
+    try {
+      const response = await fetch('/api/settings/reabrir')
+      const data = await response.json()
+      if (data.periodos) {
+        setClosedPeriods(data.periodos)
+      }
+    } catch {
+      // silent fail
     }
   }
 
@@ -479,18 +521,18 @@ export default function SettingsPage() {
             onClick={handleCerrarPeriodo}
             disabled={isClosingPeriod}
             className="w-full py-4 text-base font-semibold rounded-full disabled:opacity-50"
-            style={{ 
-              background: isClosingPeriod ? 'var(--surface-container-low)' : 'var(--primary)',
-              color: isClosingPeriod ? 'var(--on-surface-variant)' : 'var(--on-primary)',
+            style={{
+              background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%)',
+              color: 'var(--on-primary)',
               fontFamily: 'Inter, sans-serif'
             }}
           >
             {isClosingPeriod ? 'Cerrando período...' : 'Cerrar período actual'}
           </button>
           {closeResult && (
-            <p 
+            <p
               className="mt-3 text-sm font-medium"
-              style={{ 
+              style={{
                 color: closeResult.success ? 'var(--secondary)' : 'var(--error)',
                 fontFamily: 'Inter, sans-serif'
               }}
@@ -498,6 +540,73 @@ export default function SettingsPage() {
               {closeResult.message}
             </p>
           )}
+
+          {showReopenSection && (
+            <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--outline)' }}>
+              <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--on-surface)', fontFamily: 'Manrope, sans-serif' }}>
+                Reabrir período cerrado
+              </h3>
+              {closedPeriods.length === 0 ? (
+                <p className="text-sm" style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }}>
+                  No hay períodos cerrados.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {closedPeriods.map((p) => (
+                    <div
+                      key={p.periodo}
+                      className="flex items-center justify-between p-3 rounded-xl"
+                      style={{ background: 'var(--surface-container-low)' }}
+                    >
+                      <span className="text-sm" style={{ fontFamily: 'Inter, sans-serif', color: 'var(--on-surface)' }}>
+                        {p.periodo}
+                      </span>
+                      <button
+                        onClick={() => handleReabrirPeriodo(p.periodo)}
+                        disabled={isReopening}
+                        className="px-3 py-1 text-xs font-medium rounded-lg disabled:opacity-50"
+                        style={{
+                          background: 'var(--primary)',
+                          color: 'var(--on-primary)',
+                          fontFamily: 'Inter, sans-serif'
+                        }}
+                      >
+                        Reabrir
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {reopenResult && (
+                <p
+                  className="mt-2 text-sm font-medium"
+                  style={{
+                    color: reopenResult.success ? 'var(--secondary)' : 'var(--error)',
+                    fontFamily: 'Inter, sans-serif'
+                  }}
+                >
+                  {reopenResult.message}
+                </p>
+              )}
+            </div>
+          )}
+
+          <button
+            onClick={() => {
+              if (!showReopenSection) {
+                fetchClosedPeriods()
+              }
+              setShowReopenSection(!showReopenSection)
+            }}
+            className="w-full mt-3 py-2 text-sm rounded-lg transition-all"
+            style={{
+              background: 'var(--surface-container-low)',
+              color: 'var(--on-surface-variant)',
+              fontFamily: 'Inter, sans-serif'
+            }}
+          >
+            {showReopenSection ? 'Ocultar' : 'Reabrir período'}
+          </button>
         </div>
 
         {/* Cerrar sesión */}
