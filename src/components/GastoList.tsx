@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Gasto, GastoTipo } from '@/types'
 import { useTheme } from '@/context/ThemeContext'
@@ -75,10 +75,34 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
   }
 
   // Track newly added expenses for animation
+  const knownIdsRef = useRef(new Set<string>())
+
   useEffect(() => {
-    const newItems = gastos.slice(0, 3).map(g => g.id)
-    setNewlyAdded(new Set(newItems))
-  }, [])
+    const currentIds = new Set(gastos.map(g => g.id))
+    const newIds = [...currentIds].filter(id => !knownIdsRef.current.has(id))
+
+    if (newIds.length > 0) {
+      setNewlyAdded(prev => {
+        const next = new Set(prev)
+        newIds.forEach(id => next.add(id))
+        return next
+      })
+
+      // Remove highlight after timeout
+      const timeout = setTimeout(() => {
+        setNewlyAdded(prev => {
+          const next = new Set(prev)
+          newIds.forEach(id => next.delete(id))
+          return next
+        })
+      }, 2000)
+
+      knownIdsRef.current = currentIds
+      return () => clearTimeout(timeout)
+    }
+
+    knownIdsRef.current = currentIds
+  }, [gastos])
 
   const handleDeleteClick = (gastoId: string) => {
     setConfirmDelete({ show: true, id: gastoId })

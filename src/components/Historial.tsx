@@ -5,14 +5,13 @@ import { Gasto, Resumen as ResumenType } from '@/types'
 import { useTheme } from '@/context/ThemeContext'
 import { useUserSettings } from '@/context/UserSettingsContext'
 import { getAvatarUrl } from '@/lib/dicebear'
+import { DIA_CORTE } from '@/lib/constants'
 
 interface HistorialProps {
   gastos: Gasto[]
 }
 
 type UserRole = 'el' | 'ella'
-
-const DIA_CORTE = 10 // El corte de la tarjeta es el dia 10 de cada mes
 
 function getCorteId(fecha: string): string {
   const date = new Date(fecha)

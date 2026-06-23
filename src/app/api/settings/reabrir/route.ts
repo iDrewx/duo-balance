@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseServer } from '@/lib/supabase'
+import { DIA_CORTE } from '@/lib/constants'
 
 function getCorteId(fecha: string): string {
   const date = new Date(fecha)
@@ -10,7 +11,7 @@ function getCorteId(fecha: string): string {
   let mesCorte = month
   let anioCorte = year
 
-  if (day < 10) {
+  if (day < DIA_CORTE) {
     mesCorte = month - 1
     if (mesCorte < 0) {
       mesCorte = 11

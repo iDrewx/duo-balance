@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseServer } from '@/lib/supabase'
-
-const DIA_CORTE = 10
+import { DIA_CORTE } from '@/lib/constants'
 
 function getCorteId(fecha: string): string {
   const date = new Date(fecha)
