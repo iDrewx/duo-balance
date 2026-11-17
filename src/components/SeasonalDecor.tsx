@@ -29,7 +29,8 @@ const WIRE_SAG = 9
 const LIGHT_COUNT = 44
 const LIGHTS_HEIGHT = WIRE_TOP + WIRE_SAG + 14
 
-const LIGHT_COLORS = ['#ef4444', '#fbbf24', '#22c55e', '#60a5fa', '#f472b6', '#fde68a']
+// Bulbs repeat this exact order along the string: pink, yellow, blue, green, red.
+const LIGHT_COLORS = ['#f472b6', '#facc15', '#60a5fa', '#22c55e', '#ef4444']
 
 const LIGHTS = Array.from({ length: LIGHT_COUNT }, (_, index) => {
   // Half-step offsets keep the first and last bulbs off the screen edges.
