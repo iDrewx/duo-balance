@@ -10,6 +10,7 @@ import { useSwipeable } from 'react-swipeable'
 
 interface GastoListProps {
   gastos: Gasto[]
+  searchQuery?: string
   onDelete?: (gastoId: string) => Promise<void>
   onEdit?: (gastoId: string, updates: { monto?: number; descripcion?: string; tipo?: 'compartido' | 'propio' }) => Promise<void>
 }
@@ -30,10 +31,10 @@ function formatDate(dateStr: string): string {
   })
 }
 
-export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) {
+export default function GastoList({ gastos, searchQuery, onDelete, onEdit }: GastoListProps) {
   const { isDark } = useTheme()
   const { settings } = useUserSettings()
-  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [removingId, setRemovingId] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<{ show: boolean; id: string | null }>({ show: false, id: null })
   const [editingGasto, setEditingGasto] = useState<{ show: boolean; gasto: Gasto | null }>({ show: false, gasto: null })
   const [editForm, setEditForm] = useState({ monto: '', descripcion: '', tipo: 'propio' as GastoTipo })
@@ -63,6 +64,10 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
   const [loadingMore, setLoadingMore] = useState(false)
   const visibleGastos = sortedGastos.slice(0, visibleCount)
   const hasMore = visibleCount < sortedGastos.length
+
+  useEffect(() => {
+    setVisibleCount(10)
+  }, [searchQuery])
 
   // Handle mostrar más con animación
   const handleShowMore = () => {
@@ -108,24 +113,23 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
     setConfirmDelete({ show: true, id: gastoId })
   }
 
-  const confirmDeleteAction = async () => {
+  const confirmDeleteAction = () => {
     const gastoId = confirmDelete.id
-    if (gastoId) {
-      // Trigger exit animation first
-      setConfirmDelete({ show: false, id: gastoId })
-      
-      // Wait for animation, then delete
-      setTimeout(async () => {
-        setDeletingId(gastoId)
-        try {
-          if (onDelete) {
-            await onDelete(gastoId)
-          }
-        } finally {
-          setDeletingId(null)
+    if (!gastoId) return
+
+    // Close the modal and let the row collapse before removing it from state
+    setConfirmDelete({ show: false, id: null })
+    setRemovingId(gastoId)
+
+    setTimeout(async () => {
+      try {
+        if (onDelete) {
+          await onDelete(gastoId)
         }
-      }, 300)
-    }
+      } finally {
+        setRemovingId(null)
+      }
+    }, 320)
   }
 
   const cancelDelete = () => {
@@ -162,7 +166,7 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
           next.delete(gasto.id)
           return next
         })
-      }, 200)
+      }, 700)
     }
 
     setEditingGasto({ show: false, gasto: null })
@@ -222,7 +226,9 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
         >
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="var(--on-surface-variant)"/>
         </svg>
-        <p style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }}>No hay gastos registrados</p>
+        <p style={{ color: 'var(--on-surface-variant)', fontFamily: 'Inter, sans-serif' }}>
+          {searchQuery?.trim() ? 'No hay gastos que coincidan con tu búsqueda' : 'No hay gastos registrados'}
+        </p>
       </div>
     )
   }
@@ -249,17 +255,16 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
         </div>
         
         <div>
-          {visibleGastos.map((gasto, index) => (
+          {visibleGastos.map((gasto) => (
             <GastoItem
               key={gasto.id}
               gasto={gasto}
               avatarElSeed={avatarElSeed}
               avatarEllaSeed={avatarEllaSeed}
               isDark={isDark}
-              isDeleting={deletingId === gasto.id}
+              isRemoving={removingId === gasto.id}
               isNew={newlyAdded.has(gasto.id)}
               isEdited={recentlyEdited.has(gasto.id)}
-              animationDelay={index * 0.05}
               onDeleteClick={() => handleDeleteClick(gasto.id)}
               onEditClick={() => handleEditClick(gasto)}
               isMenuOpen={openMenuId === gasto.id}
@@ -308,16 +313,16 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.28, ease: 'easeOut' }}
               className="fixed inset-0 flex items-center justify-center z-50 p-4"
               style={{ background: 'rgba(0,0,0,0.5)' }}
               onClick={cancelDelete}
             />
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              initial={{ opacity: 0, scale: 0.94, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              exit={{ opacity: 0, scale: 0.97, y: 8, transition: { duration: 0.2, ease: 'easeIn' } }}
+              transition={{ type: "spring", stiffness: 240, damping: 28, mass: 0.9 }}
               className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none"
             >
               <div 
@@ -393,16 +398,16 @@ export default function GastoList({ gastos, onDelete, onEdit }: GastoListProps) 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.28, ease: 'easeOut' }}
               className="fixed inset-0 flex items-center justify-center z-50 p-4"
               style={{ background: 'rgba(0,0,0,0.5)' }}
               onClick={cancelEdit}
             />
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              initial={{ opacity: 0, scale: 0.94, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              exit={{ opacity: 0, scale: 0.97, y: 8, transition: { duration: 0.2, ease: 'easeIn' } }}
+              transition={{ type: "spring", stiffness: 240, damping: 28, mass: 0.9 }}
               className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none"
             >
               <div 
@@ -561,10 +566,9 @@ function GastoItem({
   avatarElSeed,
   avatarEllaSeed,
   isDark,
-  isDeleting,
+  isRemoving,
   isNew,
   isEdited,
-  animationDelay,
   onDeleteClick,
   onEditClick,
   isMenuOpen,
@@ -577,10 +581,9 @@ function GastoItem({
   avatarElSeed: string
   avatarEllaSeed: string
   isDark: boolean
-  isDeleting: boolean
+  isRemoving: boolean
   isNew: boolean
   isEdited: boolean
-  animationDelay: number
   onDeleteClick: () => void
   onEditClick: () => void
   isMenuOpen?: boolean
@@ -630,33 +633,15 @@ function GastoItem({
   const editIconOpacity = Math.min(1, Math.abs(displayOffset) / 40)
 
   return (
-    <div
-      className={`relative overflow-hidden ${isDeleting ? 'animate-gasto-delete' : ''}`}
-      style={{ animationDelay: `${animationDelay}s` }}
+    <motion.div
+      className="relative overflow-hidden"
+      initial={false}
+      animate={{
+        opacity: isRemoving ? 0 : 1,
+        height: isRemoving ? 0 : 'auto',
+      }}
+      transition={{ duration: 0.32, ease: 'easeInOut' }}
     >
-      <style jsx>{`
-        @keyframes gastoDelete {
-          0% {
-            opacity: 1;
-            transform: translateX(0) scaleY(1);
-            max-height: 100px;
-          }
-          30% {
-            opacity: 0.8;
-            transform: translateX(20px) scaleY(1.05);
-          }
-          100% {
-            opacity: 0;
-            transform: translateX(120px) scaleY(0.8);
-            max-height: 0;
-            padding-top: 0;
-            padding-bottom: 0;
-          }
-        }
-        .animate-gasto-delete {
-          animation: gastoDelete 0.4s ease-out forwards;
-        }
-      `}</style>
       {/* Wrapper interior para swipe — div regular, NO motion */}
       <div
         {...handlers}
@@ -813,6 +798,16 @@ function GastoItem({
         </div>
       </div>
 
+      {/* Edit highlight */}
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 z-[1]"
+        style={{ background: 'var(--primary)' }}
+        initial={false}
+        animate={{ opacity: isEdited ? 0.08 : 0 }}
+        transition={{ duration: 0.45, ease: 'easeOut' }}
+      />
+
       {/* Dropdown Menu — fuera del wrapper para no verse afectado por swipe transform */}
       {isMenuOpen && menuPosition && (
         <div
@@ -862,6 +857,6 @@ function GastoItem({
           </button>
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }

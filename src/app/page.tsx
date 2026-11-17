@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import UserSelector from '@/components/UserSelector'
+import SearchBar from '@/components/SearchBar'
 import GastoForm from '@/components/GastoForm'
 import GastoList from '@/components/GastoList'
 import Resumen from '@/components/Resumen'
@@ -15,6 +16,14 @@ import { useGastos } from '@/hooks/useGastos'
 import { UserRole } from '@/types'
 import { getAvatarUrl } from '@/lib/dicebear'
 
+function normalizeText(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+}
+
 export default function Home() {
   const router = useRouter()
   const { user: authUser, isLoading: authLoading, signOut } = useAuth()
@@ -24,6 +33,7 @@ export default function Home() {
   const [user, setUser] = useState<UserRole | null>(null)
   const [isClient, setIsClient] = useState(false)
   const [vista, setVista] = useState<'resumen' | 'historial'>('resumen')
+  const [searchQuery, setSearchQuery] = useState('')
 
   const {
     gastos,
@@ -85,6 +95,14 @@ export default function Home() {
       setUser(assignedProfile)
     }
   }, [user, assignedProfile])
+
+  const gastosActuales = getGastosActuales().filter(g => !g.cerrado)
+
+  const filteredGastosActuales = useMemo(() => {
+    const query = normalizeText(searchQuery)
+    if (!query) return gastosActuales
+    return gastosActuales.filter(g => normalizeText(g.descripcion).includes(query))
+  }, [gastosActuales, searchQuery])
 
   // Si settings no cargan, mostrar loading
   if (settingsLoading) {
@@ -251,9 +269,10 @@ export default function Home() {
       <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {vista === 'resumen' ? (
           <>
-            <Resumen gastos={getGastosActuales().filter(g => !g.cerrado)} currentUser={currentUser} />
+            <Resumen gastos={gastosActuales} currentUser={currentUser} />
             <GastoForm quien={currentUser} onAgregar={handleAgregarGasto} />
-            <GastoList gastos={getGastosActuales().filter(g => !g.cerrado)} onDelete={handleDeleteGasto} onEdit={handleEditGasto} />
+            <SearchBar value={searchQuery} onChange={setSearchQuery} />
+            <GastoList gastos={filteredGastosActuales} searchQuery={searchQuery} onDelete={handleDeleteGasto} onEdit={handleEditGasto} />
           </>
         ) : (
           <Historial gastos={gastos} />

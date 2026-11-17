@@ -40,14 +40,27 @@ export default function GastoForm({ quien, onAgregar }: GastoFormProps) {
 
   return (
     <motion.form 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: 0.1 }}
+      initial={{ 
+        opacity: 0, 
+        y: 20,
+        boxShadow: '0 0 0 0px rgba(34, 197, 94, 0), 0 12px 40px rgba(26, 28, 28, 0.06)'
+      }}
+      animate={{ 
+        opacity: 1, 
+        y: 0,
+        boxShadow: showSuccess
+          ? '0 0 0 2px rgba(34, 197, 94, 0.35), 0 12px 40px rgba(34, 197, 94, 0.15)'
+          : '0 0 0 0px rgba(34, 197, 94, 0), 0 12px 40px rgba(26, 28, 28, 0.06)'
+      }}
+      transition={{ 
+        opacity: { duration: 0.4, delay: 0.1 },
+        y: { duration: 0.4, delay: 0.1, ease: 'easeOut' },
+        boxShadow: { duration: 0.35, ease: 'easeOut' }
+      }}
       onSubmit={handleSubmit} 
       className="bg-[var(--surface-container-lowest)] p-6"
       style={{ 
-        borderRadius: '24px', 
-        boxShadow: '0 12px 40px rgba(26, 28, 28, 0.06)'
+        borderRadius: '24px'
       }}
     >
       <h2 
@@ -65,45 +78,21 @@ export default function GastoForm({ quien, onAgregar }: GastoFormProps) {
           >
             Descripcion
           </label>
-          <AnimatePresence mode="wait">
-            {showSuccess ? (
-              <motion.div
-                key="descripcion-empty"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="w-full px-4 py-4 outline-none"
-                style={{ 
-                  background: 'var(--surface-container-low)',
-                  borderRadius: '16px',
-                  color: 'var(--on-surface-variant)',
-                  fontFamily: 'Inter, sans-serif'
-                }}
-              >
-                Listo
-              </motion.div>
-            ) : (
-              <motion.input
-                key="descripcion-input"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                type="text"
-                value={descripcion}
-                onChange={(e) => setDescripcion(e.target.value)}
-                placeholder="Ej: Supermercado"
-                className="w-full px-4 py-4 outline-none transition-all"
-                style={{ 
-                  background: 'var(--surface-container-low)',
-                  border: 'none',
-                  borderRadius: '16px',
-                  color: 'var(--on-surface)',
-                  fontFamily: 'Inter, sans-serif'
-                }}
-                required
-              />
-            )}
-          </AnimatePresence>
+          <input
+            type="text"
+            value={descripcion}
+            onChange={(e) => setDescripcion(e.target.value)}
+            placeholder="Ej: Supermercado"
+            className="w-full px-4 py-4 outline-none transition-all"
+            style={{ 
+              background: 'var(--surface-container-low)',
+              border: 'none',
+              borderRadius: '16px',
+              color: 'var(--on-surface)',
+              fontFamily: 'Inter, sans-serif'
+            }}
+            required
+          />
         </div>
 
         <div>
@@ -113,47 +102,23 @@ export default function GastoForm({ quien, onAgregar }: GastoFormProps) {
           >
             Monto ($)
           </label>
-          <AnimatePresence mode="wait">
-            {showSuccess ? (
-              <motion.div
-                key="monto-empty"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="w-full px-4 py-4 outline-none"
-                style={{ 
-                  background: 'var(--surface-container-low)',
-                  borderRadius: '16px',
-                  color: 'var(--on-surface-variant)',
-                  fontFamily: 'Inter, sans-serif'
-                }}
-              >
-                Listo
-              </motion.div>
-            ) : (
-              <motion.input
-                key="monto-input"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                type="number"
-                value={monto}
-                onChange={(e) => setMonto(e.target.value)}
-                placeholder="0.00"
-                step="0.01"
-                min="0"
-                className="w-full px-4 py-4 outline-none transition-all"
-                style={{ 
-                  background: 'var(--surface-container-low)',
-                  border: 'none',
-                  borderRadius: '16px',
-                  color: 'var(--on-surface)',
-                  fontFamily: 'Inter, sans-serif'
-                }}
-                required
-              />
-            )}
-          </AnimatePresence>
+          <input
+            type="number"
+            value={monto}
+            onChange={(e) => setMonto(e.target.value)}
+            placeholder="0.00"
+            step="0.01"
+            min="0"
+            className="w-full px-4 py-4 outline-none transition-all"
+            style={{ 
+              background: 'var(--surface-container-low)',
+              border: 'none',
+              borderRadius: '16px',
+              color: 'var(--on-surface)',
+              fontFamily: 'Inter, sans-serif'
+            }}
+            required
+          />
         </div>
 
         <div>
