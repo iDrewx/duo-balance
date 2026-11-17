@@ -4,6 +4,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { UserSettingsProvider } from "@/context/UserSettingsContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import SeasonalDecor from "@/components/SeasonalDecor";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
@@ -23,6 +24,7 @@ export default function RootLayout({
   return (
     <html lang="es-MX" className="h-full" style={{ colorScheme: 'light dark' }}>
       <body className={`${inter.variable} ${manrope.variable} h-full antialiased`}>
+        <SeasonalDecor />
         <ErrorBoundary>
           <AuthProvider>
             <ThemeProvider>
