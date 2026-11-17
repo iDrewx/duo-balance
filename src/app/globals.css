@@ -225,13 +225,52 @@ body {
   background: linear-gradient(to bottom, #64748b, #334155);
 }
 
-/* On small screens the header is tighter: hide half the bulbs and lift the
-   string a little so the deepest point never touches the header content. */
+/* On small screens the header is tighter: lift the string a little so the
+   deepest point never touches the header content, and thin it out so the bulbs
+   keep the spacing they have on desktop. A phone is roughly a third of the
+   desktop width, so one bulb out of three restores ~26px between lights;
+   without it the 14px glow of each neighbour overlaps into a single band. */
 @media (max-width: 640px) {
   .seasonal-lights {
     top: -4px;
   }
 
+  .seasonal-light:nth-of-type(3n + 2),
+  .seasonal-light:nth-of-type(3n) {
+    display: none;
+  }
+
+  /* Slightly smaller glass and a tighter halo keep every bulb readable as a
+     separate light at phone spacing. */
+  .seasonal-bulb {
+    width: 7px;
+    height: 9px;
+    box-shadow:
+      inset 0 -1px 2px rgba(15, 23, 42, 0.3),
+      inset 0 1px 1px rgba(255, 255, 255, 0.55),
+      0 0 4px currentColor,
+      0 0 8px currentColor;
+  }
+
+  .dark .seasonal-bulb {
+    box-shadow:
+      inset 0 -1px 2px rgba(2, 6, 23, 0.45),
+      inset 0 1px 1px rgba(255, 255, 255, 0.65),
+      0 0 4px currentColor,
+      0 0 9px currentColor,
+      0 0 16px currentColor;
+  }
+
+  .seasonal-bulb::before {
+    width: 3px;
+    height: 3px;
+  }
+}
+
+/* Tablets and small windows sit between the phone and the wide desktop: keep
+   every second bulb so the spacing stays in the same range as both ends
+   instead of collapsing to ~15px right above the phone breakpoint. */
+@media (min-width: 641px) and (max-width: 1024px) {
   .seasonal-light:nth-of-type(even) {
     display: none;
   }
